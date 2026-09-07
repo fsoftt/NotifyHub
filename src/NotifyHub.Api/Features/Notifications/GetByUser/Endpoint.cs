@@ -6,19 +6,25 @@
             this IEndpointRouteBuilder endpoints)
         {
             endpoints.MapGet(
-                "/users/{userId}/notifications",
+                "/users/{userId}/notifications", 
                 async (
                     string userId, 
+                    int? pageSize,
+                    string? cursor,
                     Handler handler,
                     CancellationToken cancellationToken) =>
-                {
-                    var query = new Query(userId);
-                    var notifications = await handler.HandleAsync(
+            {
+                var query = new Query(
+                    userId,
+                    pageSize ?? 20,
+                    cursor);
+
+                var notifications = await handler.HandleAsync(
                     query,
                     cancellationToken);
 
-                    return Results.Ok(notifications);
-                });
+                return Results.Ok(notifications);
+            });
 
             return endpoints;
         }
