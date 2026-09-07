@@ -12,10 +12,11 @@ namespace NotifyHub.Api.Infrastructure.Mongo.Indexes
             var index = new CreateIndexModel<NotificationDocument>(
                 Builders<NotificationDocument>.IndexKeys
                     .Ascending(x => x.UserId)
-                    .Descending(x => x.CreatedAt),
+                    .Descending(x => x.CreatedAt)
+                    .Descending(x => x.Id),
                 new CreateIndexOptions
                 {
-                    Name = "IX_Notifications_UserId_CreatedAt",
+                    Name = "IX_Notifications_UserId_CreatedAt_Id",
                 });
 
             await collection.Indexes.CreateOneAsync(
