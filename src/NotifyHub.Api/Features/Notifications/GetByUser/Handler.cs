@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Driver;
-using NotifyHub.Api.Features.Notifications.GetById;
+﻿using MongoDB.Driver;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Mongo.Documents;
 
@@ -28,11 +24,8 @@ namespace NotifyHub.Api.Features.Notifications.GetByUser
                 .Filter
                 .Eq(x => x.UserId, query.UserId);
 
-            Cursor? cursor = null;
-            if (!string.IsNullOrWhiteSpace(query.Cursor))
+            if (query.Cursor is not null)
             {
-                cursor = CursorEncoder.Decode(query.Cursor);
-
                 var cursorFilter = Builders<NotificationDocument>
                     .Filter
                     .Or(
@@ -40,7 +33,7 @@ namespace NotifyHub.Api.Features.Notifications.GetByUser
                             .Filter
                             .Lt(x => 
                                 x.CreatedAt,
-                                cursor!.CreatedAt),
+                                query.Cursor.CreatedAt),
                         Builders<NotificationDocument>
                             .Filter
                             .And(
@@ -48,13 +41,13 @@ namespace NotifyHub.Api.Features.Notifications.GetByUser
                                     .Filter
                                     .Eq(
                                         x => x.CreatedAt,
-                                        cursor.CreatedAt),
+                                        query.Cursor.CreatedAt),
 
                                 Builders<NotificationDocument>
                                     .Filter
                                     .Lt(
                                         x => x.Id,
-                                        cursor.Id)
+                                        query.Cursor.Id)
                             )
                     );
 

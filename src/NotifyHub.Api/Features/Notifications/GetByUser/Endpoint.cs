@@ -14,10 +14,22 @@
                     Handler handler,
                     CancellationToken cancellationToken) =>
             {
+                if (pageSize < 0 || pageSize > 100)
+                {
+                    return Results.BadRequest("Page size must be between 0 and 100.");
+                }
+
+                bool isEmpty = string.IsNullOrEmpty(cursor);
+                bool decoded = CursorEncoder.TryDecode(cursor, out var decodedCursor);
+                if (!isEmpty && !decoded)
+                {
+                    return Results.BadRequest("Invalid cursor.");
+                }
+
                 var query = new Query(
                     userId,
                     pageSize ?? 20,
-                    cursor);
+                    decodedCursor);
 
                 var notifications = await handler.HandleAsync(
                     query,

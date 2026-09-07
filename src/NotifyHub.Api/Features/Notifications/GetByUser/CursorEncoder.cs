@@ -36,5 +36,11 @@ namespace NotifyHub.Api.Features.Notifications.GetByUser
                 return null;
             }
         }
+
+        public static bool TryDecode(string? encodedCursor, out Cursor? cursor)
+        {
+            cursor = Decode(encodedCursor);
+            return cursor is not null;
+        }
     }
 }
