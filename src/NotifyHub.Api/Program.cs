@@ -1,6 +1,7 @@
 using NotifyHub.Api.Features.Notifications.Create;
 using NotifyHub.Api.Features.Notifications.GetById;
 using NotifyHub.Api.Features.Notifications.GetByUser;
+using NotifyHub.Api.Features.Notifications.GetSummary;
 using NotifyHub.Api.Features.Notifications.MarkAllAsRead;
 using NotifyHub.Api.Features.Notifications.MarkAsRead;
 using NotifyHub.Api.Infrastructure.Mongo;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<MongoInitializer>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetById.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handler>();
+builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetSummary.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAllAsRead.Handler>();
 builder.Services.AddSingleton<MongoContext>();
@@ -53,5 +55,6 @@ app.MapGetNotificationsByUser();
 app.MapGetNotificationById();
 app.MapMarkNotificationAsRead();
 app.MapMarkAllNotificationsAsRead();
+app.MapGetNotificationsSummary();
 
 app.Run();
