@@ -1,6 +1,7 @@
 using NotifyHub.Api.Features.Notifications.Create;
 using NotifyHub.Api.Features.Notifications.GetById;
 using NotifyHub.Api.Features.Notifications.GetByUser;
+using NotifyHub.Api.Features.Notifications.MarkAsRead;
 using NotifyHub.Api.Infrastructure.Mongo;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,7 @@ builder.Services.AddScoped<MongoInitializer>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetById.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handler>();
+builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddSingleton<MongoContext>();
 
 var app = builder.Build();
@@ -47,5 +49,6 @@ app.MapControllers();
 app.MapCreateNotification();
 app.MapGetNotificationsByUser();
 app.MapGetNotificationById();
+app.MapMarkNotificationAsRead();
 
 app.Run();
