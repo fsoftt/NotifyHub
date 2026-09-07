@@ -32,12 +32,10 @@ namespace NotifyHub.Api.Features.Notifications.GetByUser
                 .Projection
                 .Expression(x => new Response(
                     x.Id,
-                    x.UserId,
                     x.Type,
                     x.Content.Title,
                     x.Content.Message,
                     x.Read,
-                    x.ReadAt,
                     x.CreatedAt
                 ));
 
