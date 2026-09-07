@@ -19,9 +19,21 @@ namespace NotifyHub.Api.Features.Notifications.GetSummary
         {
             var collection = context.GetCollection<NotificationDocument>("notifications");
 
+            var filter = Builders<NotificationDocument>
+                .Filter
+                .And(
+                    Builders<NotificationDocument>
+                        .Filter
+                        .Eq(x => x.UserId, query.UserId),
+
+                    Builders<NotificationDocument>
+                        .Filter
+                        .Eq(x => x.Read, false)
+                );
+
             return await collection
                 .Aggregate()
-                .Match(x => x.UserId == query.UserId)
+                .Match(filter)
                 .Group(
                     x => x.Type, 
                     group => new Response(
