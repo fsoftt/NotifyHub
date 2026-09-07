@@ -1,4 +1,6 @@
 using NotifyHub.Api.Features.Notifications.Create;
+using NotifyHub.Api.Features.Notifications.GetById;
+using NotifyHub.Api.Features.Notifications.GetByUser;
 using NotifyHub.Api.Infrastructure.Mongo;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,10 +17,20 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddScoped<MongoInitializer>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
+builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetById.Handler>();
+builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handler>();
 builder.Services.AddSingleton<MongoContext>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var mongoInitializer = services.GetRequiredService<MongoInitializer>();
+    await mongoInitializer.InitializeAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -31,6 +43,9 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.MapCreateNotification();
+app.MapGetNotificationsByUser();
+app.MapGetNotificationById();
 
 app.Run();
