@@ -48,8 +48,8 @@ namespace NotifyHub.Api.Features.Notifications.Create
                 document.UserId);
 
             await publisher.PublishAsync(
-                exchangeName: "notifications",
-                routingKey: "notifications.created",
+                exchangeName: RabbitMqTopology.Exchange,
+                routingKey: RabbitMqTopology.CreatedQueue,
                 message: message,
                 cancellationToken: cancellationToken);
 

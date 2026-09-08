@@ -38,29 +38,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             await using var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
             Console.WriteLine("RabbitMQ Consumer: channel created...");
 
-            await channel.ExchangeDeclareAsync(
-                exchange: "notifications",
-                type: ExchangeType.Topic,
-                durable: true,
-                autoDelete: false,
-                arguments: null,
-                cancellationToken: stoppingToken);
-
-            await channel.QueueDeclareAsync(
-                queue: "notifications.created",
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null,
-                cancellationToken: stoppingToken);
-
-            await channel.QueueBindAsync(
-                queue: "notifications.created",
-                exchange: "notifications",
-                routingKey: "notifications.created",
-                arguments: null,
-                cancellationToken: stoppingToken);
-
+            await RabbitMqTopology.ConfigureAsync(channel, stoppingToken);
             Console.WriteLine("RabbitMQ Consumer: queue configured");
 
             var rabbitConsumer = new AsyncEventingBasicConsumer(channel);
@@ -91,16 +69,35 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 catch (Exception)
                 {
                     Console.WriteLine("RabbitMQ Consumer: message processing failed, message will be requeued");
-                    await channel.BasicNackAsync(
+
+                    var retryCount = RetryPolicy.GetRetryCount(args);
+                    if (retryCount < RetryPolicy.MaxRetries)
+                    {
+                        await PublishRetryAsync(
+                            channel,
+                            args.Body,
+                            retryCount,
+                            stoppingToken);
+                        Console.WriteLine($"RabbitMQ Consumer: message published to retry queue (retry count: {retryCount + 1})");
+                    }
+                    else
+                    {
+                        await PublishDeadLetterAsync(
+                            channel,
+                            args.Body,
+                            stoppingToken);
+                        Console.WriteLine("RabbitMQ Consumer: message reached max retry count, will be sent to dead letter queue");
+                    }
+
+                    await channel.BasicAckAsync(
                         args.DeliveryTag,
                         multiple: false,
-                        requeue: true,
                         cancellationToken: stoppingToken);
                 }
             };
 
             await channel.BasicConsumeAsync(
-                queue: "notifications.created",
+                queue: RabbitMqTopology.CreatedQueue,
                 autoAck: false,
                 consumer: rabbitConsumer,
                 cancellationToken: stoppingToken);
@@ -110,6 +107,53 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             await Task.Delay(
                 Timeout.Infinite, 
                 stoppingToken);
+        }
+
+        private async Task PublishRetryAsync(
+            IChannel channel,
+            ReadOnlyMemory<byte> body,
+            int retryCount,
+            CancellationToken cancellationToken)
+        {
+            var nextRetryCount = retryCount + 1;
+
+            var queue = RetryPolicy.GetQueue(nextRetryCount);
+
+            var properties = new BasicProperties
+            {
+                Persistent = true,
+                Headers = new Dictionary<string, object?>
+                {
+                    [RetryPolicy.RetryCountHeader] = nextRetryCount
+                }
+            };
+
+            await channel.BasicPublishAsync(
+                exchange: RabbitMqTopology.Exchange,
+                routingKey: queue,
+                mandatory: false,
+                basicProperties: properties,
+                body: body,
+                cancellationToken: cancellationToken);
+        }
+
+        private static async Task PublishDeadLetterAsync(
+            IChannel channel,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken)
+        {
+            var properties = new BasicProperties
+            {
+                Persistent = true
+            };
+
+            await channel.BasicPublishAsync(
+                exchange: RabbitMqTopology.Exchange,
+                routingKey: RabbitMqTopology.DeadLetterQueue,
+                mandatory: false,
+                basicProperties: properties,
+                body: body,
+                cancellationToken: cancellationToken);
         }
     }
 }
