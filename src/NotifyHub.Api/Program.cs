@@ -35,6 +35,8 @@ builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetSummary.Handl
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAllAsRead.Handler>();
 builder.Services.AddSingleton<MongoContext>();
+builder.Services.AddSingleton<NotificationConsumer>();
+builder.Services.AddHostedService<RabbitMqConsumerWorker>();
 
 var app = builder.Build();
 
