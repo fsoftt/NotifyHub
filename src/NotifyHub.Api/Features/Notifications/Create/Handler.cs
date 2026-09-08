@@ -48,8 +48,9 @@ namespace NotifyHub.Api.Features.Notifications.Create
                 document.UserId);
 
             await publisher.PublishAsync(
-                "notifications.created",
-                message,
+                exchangeName: "notifications",
+                routingKey: "notifications.created",
+                message: message,
                 cancellationToken: cancellationToken);
 
             return document.Id;

@@ -15,7 +15,8 @@ namespace NotifyHub.Api.Infrastructure.Messaging
         }
 
         public async Task PublishAsync<T>(
-            string queueName,
+            string exchangeName,
+            string routingKey,
             T message,
             CancellationToken cancellationToken)
         {
@@ -30,20 +31,20 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             await using var connection = await factory.CreateConnectionAsync(cancellationToken);
             await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
-            await channel.QueueDeclareAsync(
-                queue: queueName, 
-                durable: true, 
-                exclusive: false, 
-                autoDelete: false, 
-                arguments: null, 
+            await channel.ExchangeDeclareAsync(
+                exchange: exchangeName,
+                type: ExchangeType.Topic,
+                durable: true,
+                autoDelete: false,
+                arguments: null,
                 cancellationToken: cancellationToken);
 
             var json = JsonSerializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
 
             await channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: queueName,
+                exchange: exchangeName,
+                routingKey: routingKey,
                 body: body,
                 cancellationToken: cancellationToken);
         }

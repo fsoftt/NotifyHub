@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using NotifyHub.Api.Infrastructure.Messaging.Contracts;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
@@ -21,7 +22,9 @@ namespace NotifyHub.Api.Infrastructure.Messaging
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new RabbitMQ.Client.ConnectionFactory
+            Console.WriteLine("RabbitMQ Consumer: starting...");
+
+            var factory = new ConnectionFactory
             {
                 HostName = options.Host,
                 Port = options.Port,
@@ -30,7 +33,18 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             };
 
             await using var connection = await factory.CreateConnectionAsync(stoppingToken);
+            Console.WriteLine("RabbitMQ Consumer: connection created...");
+
             await using var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
+            Console.WriteLine("RabbitMQ Consumer: channel created...");
+
+            await channel.ExchangeDeclareAsync(
+                exchange: "notifications",
+                type: ExchangeType.Topic,
+                durable: true,
+                autoDelete: false,
+                arguments: null,
+                cancellationToken: stoppingToken);
 
             await channel.QueueDeclareAsync(
                 queue: "notifications.created",
@@ -40,6 +54,15 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 arguments: null,
                 cancellationToken: stoppingToken);
 
+            await channel.QueueBindAsync(
+                queue: "notifications.created",
+                exchange: "notifications",
+                routingKey: "notifications.created",
+                arguments: null,
+                cancellationToken: stoppingToken);
+
+            Console.WriteLine("RabbitMQ Consumer: queue configured");
+
             var rabbitConsumer = new AsyncEventingBasicConsumer(channel);
 
             rabbitConsumer.ReceivedAsync += async (_, args) =>
@@ -47,9 +70,12 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 try
                 {
                     var json = Encoding.UTF8.GetString(args.Body.ToArray());
+                    Console.WriteLine("RabbitMQ Consumer: message received: " + json);
+
                     var message = JsonSerializer.Deserialize<NotificationCreatedMessage>(json);
                     if (message is null)
                     {
+                        Console.WriteLine("RabbitMQ Consumer: message deserialization failed");
                         return;
                     }
 
@@ -59,9 +85,12 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                         args.DeliveryTag,
                         multiple: false,
                         cancellationToken: stoppingToken);
+
+                    Console.WriteLine("RabbitMQ Consumer: message processed and acknowledged");
                 }
                 catch (Exception)
                 {
+                    Console.WriteLine("RabbitMQ Consumer: message processing failed, message will be requeued");
                     await channel.BasicNackAsync(
                         args.DeliveryTag,
                         multiple: false,
@@ -74,11 +103,9 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 queue: "notifications.created",
                 autoAck: false,
                 consumer: rabbitConsumer,
-                consumerTag: string.Empty,
-                noLocal: false,
-                exclusive: false,
-                arguments: null,
                 cancellationToken: stoppingToken);
+
+            Console.WriteLine("RabbitMQ Consumer: consuming messages...");
 
             await Task.Delay(
                 Timeout.Infinite, 
