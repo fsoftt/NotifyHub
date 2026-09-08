@@ -1,4 +1,6 @@
-﻿using NotifyHub.Api.Infrastructure.Mongo;
+﻿using NotifyHub.Api.Infrastructure.Messaging;
+using NotifyHub.Api.Infrastructure.Messaging.Contracts;
+using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Mongo.Documents;
 
 namespace NotifyHub.Api.Features.Notifications.Create
@@ -6,10 +8,12 @@ namespace NotifyHub.Api.Features.Notifications.Create
     public sealed class Handler
     {
         private readonly MongoContext context;
+        private readonly RabbitMqPublisher publisher;
 
-        public Handler(MongoContext context)
+        public Handler(MongoContext context, RabbitMqPublisher publisher)
         {
             this.context = context;
+            this.publisher = publisher;
         }
 
         public async Task<string> Handle(
@@ -37,6 +41,15 @@ namespace NotifyHub.Api.Features.Notifications.Create
 
             await collection.InsertOneAsync(
                 document, 
+                cancellationToken: cancellationToken);
+
+            var message = new NotificationCreatedMessage(
+                document.Id,
+                document.UserId);
+
+            await publisher.PublishAsync(
+                "notifications.created",
+                message,
                 cancellationToken: cancellationToken);
 
             return document.Id;

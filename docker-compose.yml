@@ -7,5 +7,12 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: notifyhub-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 volumes:
   mongodb_data:

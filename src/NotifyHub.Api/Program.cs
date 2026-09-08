@@ -4,6 +4,7 @@ using NotifyHub.Api.Features.Notifications.GetByUser;
 using NotifyHub.Api.Features.Notifications.GetSummary;
 using NotifyHub.Api.Features.Notifications.MarkAllAsRead;
 using NotifyHub.Api.Features.Notifications.MarkAsRead;
+using NotifyHub.Api.Infrastructure.Messaging;
 using NotifyHub.Api.Infrastructure.Mongo;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,13 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services
+    .AddOptions<RabbitMqOptions>()
+    .BindConfiguration(RabbitMqOptions.SectionName)
+    .ValidateOnStart();
+
 builder.Services.AddScoped<MongoInitializer>();
+builder.Services.AddScoped<RabbitMqPublisher>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetById.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handler>();
