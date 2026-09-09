@@ -3,7 +3,8 @@
     public sealed class NotificationDocument
     {
         public string Id { get; init; } = default!;
-        public string UserId { get; init; } = default!;
+        public string? UserId { get; init; } = default!;
+        public string Email { get; init; } = default!;
         public string Type { get; init; } = default!;
 
         public NotificationContentDocument Content { get; init; } = default!;

@@ -6,6 +6,7 @@ using NotifyHub.Api.Features.Notifications.MarkAllAsRead;
 using NotifyHub.Api.Features.Notifications.MarkAsRead;
 using NotifyHub.Api.Infrastructure.Messaging;
 using NotifyHub.Api.Infrastructure.Mongo;
+using NotifyHub.Api.Infrastructure.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,7 @@ builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handle
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetSummary.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAllAsRead.Handler>();
+builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<NotificationConsumer>();

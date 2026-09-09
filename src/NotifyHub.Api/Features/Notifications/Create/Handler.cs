@@ -26,6 +26,7 @@ namespace NotifyHub.Api.Features.Notifications.Create
             {
                 Id = Guid.NewGuid().ToString(),
                 UserId = command.UserId,
+                Email = command.Email,
                 Type = command.Type,
 
                 Content = new NotificationContentDocument

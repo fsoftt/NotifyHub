@@ -62,7 +62,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             {
                 { "x-message-ttl", timeout },
                 { "x-dead-letter-exchange", Exchange },
-                { "x-dead-letter-routing-key", CreatedQueue }
+                { "x-dead-letter-routing-key", DeadLetterQueue }
             };
 
             await channel.QueueDeclareAsync(
