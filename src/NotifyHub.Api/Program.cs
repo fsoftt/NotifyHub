@@ -26,6 +26,13 @@ builder.Services
     .BindConfiguration(RabbitMqOptions.SectionName)
     .ValidateOnStart();
 
+builder.Services
+    .AddOptions<IdempotencyOptions>()
+    .BindConfiguration(IdempotencyOptions.SectionName)
+    .Validate(
+        options => options.LeaseSeconds > 0,
+        "LeaseSeconds must be a positive integer.");
+
 builder.Services.AddScoped<MongoInitializer>();
 builder.Services.AddScoped<RabbitMqPublisher>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
@@ -35,6 +42,7 @@ builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetSummary.Handl
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAllAsRead.Handler>();
 builder.Services.AddSingleton<MongoContext>();
+builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<NotificationConsumer>();
 builder.Services.AddHostedService<RabbitMqConsumerWorker>();
 

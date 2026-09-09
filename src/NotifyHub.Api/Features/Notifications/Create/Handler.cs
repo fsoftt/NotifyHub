@@ -44,6 +44,7 @@ namespace NotifyHub.Api.Features.Notifications.Create
                 cancellationToken: cancellationToken);
 
             var message = new NotificationCreatedMessage(
+                MessageId: Guid.NewGuid().ToString(),
                 document.Id,
                 document.UserId);
 
