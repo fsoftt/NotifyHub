@@ -9,6 +9,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
     public sealed class RabbitMqPublisher : IAsyncDisposable
     {
         private readonly RabbitMqOptions options;
+        private readonly SemaphoreSlim connectionLock = new(1, 1);
 
         private IConnection? connection;
         private IChannel? channel;
@@ -18,14 +19,39 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             this.options = options.Value;
         }
 
-        private async Task<IChannel> GetChannelAsync(
-            CancellationToken cancellationToken)
+        private async Task<IChannel> GetChannelAsync(CancellationToken cancellationToken)
         {
-            if (channel is not null && channel.IsOpen)
+            if (connection is not null
+                && connection.IsOpen
+                && channel is not null
+                && channel.IsOpen) 
             {
                 return channel;
             }
 
+            await connectionLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                if (connection is not null
+                    && connection.IsOpen
+                    && channel is not null
+                    && channel.IsOpen)
+                {
+                    return channel;
+                }
+
+                return await CreateChannelAsync(cancellationToken);
+            }
+            finally
+            {
+                connectionLock.Release();
+            }
+        }
+
+        private async Task<IChannel> CreateChannelAsync(
+            CancellationToken cancellationToken)
+        {
             var factory = new ConnectionFactory
             {
                 HostName = options.Host,
@@ -34,7 +60,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 Password = options.Password,
             };
 
-            connection ??= await factory.CreateConnectionAsync(cancellationToken);
+            connection = await factory.CreateConnectionAsync(cancellationToken);
 
             channel = await connection.CreateChannelAsync(
                 new CreateChannelOptions(
@@ -74,6 +100,8 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             {
                 await connection.DisposeAsync();
             }
+
+            connectionLock.Dispose();
         }
     }
 }
