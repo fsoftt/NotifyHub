@@ -20,7 +20,7 @@ Projects in this solution
 - (Possible other projects) — background workers, libraries, tests
 
 What it does
-- Accepts requests to create notifications (email, sms, push)
+- Accepts requests to create notifications (email, inApp, push)
 - Publishes tasks to RabbitMQ for processing
 - Uses a NoSQL store for persistence and Redis for fast lookup/deduplication (if configured)
 - Applies retry and idempotency logic when delivering notifications
