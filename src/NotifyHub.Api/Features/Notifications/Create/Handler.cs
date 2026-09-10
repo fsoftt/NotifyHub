@@ -2,6 +2,7 @@
 using NotifyHub.Api.Infrastructure.Messaging.Contracts;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Mongo.Documents;
+using NotifyHub.Api.Infrastructure.Notifications;
 
 namespace NotifyHub.Api.Features.Notifications.Create
 {
@@ -35,7 +36,13 @@ namespace NotifyHub.Api.Features.Notifications.Create
                     Message = command.Message
                 },
 
-                Channels = [],
+                Channels = [
+                    new NotificationChannelDocument 
+                    {
+                        Type = "Email",
+                        Status = NotificationChannelStatus.Pending
+                    }
+                ],
                 Read = false,
                 CreatedAt = DateTimeOffset.UtcNow,
             };
@@ -46,8 +53,7 @@ namespace NotifyHub.Api.Features.Notifications.Create
 
             var message = new NotificationCreatedMessage(
                 MessageId: Guid.NewGuid().ToString(),
-                document.Id,
-                document.UserId);
+                document.Id);
 
             await publisher.PublishAsync(
                 exchangeName: RabbitMqTopology.Exchange,

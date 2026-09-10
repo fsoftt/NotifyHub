@@ -44,7 +44,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
 
             try
             {
-                Console.WriteLine($"Processing message: {message.MessageId} for user: {message.UserId}");
+                Console.WriteLine($"Processing message: {message.MessageId}");
 
                 var notification = await GetNotificationAsync(
                     message.NotificationId,
@@ -118,11 +118,117 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             NotificationDocument notification,
             CancellationToken cancellationToken)
         {
-            await emailSender.SendAsync(
-                notification.Email,
-                notification.Content.Title,
-                notification.Content.Message,
+            await MarkEmailAsSendingAsync(
+                notification.Id,
                 cancellationToken);
+
+            try
+            {
+                await emailSender.SendAsync(
+                    notification.Email,
+                    notification.Content.Title,
+                    notification.Content.Message,
+                    cancellationToken);
+
+                await MarkEmailAsSentAsync(
+                    notification.Id, 
+                    cancellationToken);
+            }
+            catch
+            {
+                await MarkEmailAsFailedAsync(
+                    notification.Id, 
+                    cancellationToken);
+
+                throw;
+            }
+        }
+
+        private async Task MarkEmailAsSendingAsync(
+            string notificationId,
+            CancellationToken cancellationToken)
+        {
+            var collection = context.GetCollection<NotificationDocument>("notifications");
+
+            var filter =
+                Builders<NotificationDocument>
+                    .Filter.And(
+                        Builders<NotificationDocument>
+                            .Filter.Eq(x => x.Id, notificationId),
+
+                        Builders<NotificationDocument>
+                            .Filter.Eq("channels.type", "Email"),
+
+                        Builders<NotificationDocument>
+                            .Filter.Eq("channels.status", NotificationChannelStatus.Pending));
+
+            var update = Builders<NotificationDocument>
+                .Update
+                .Set(
+                    "channels.$.status",
+                    NotificationChannelStatus.Sending);
+
+            await collection.UpdateOneAsync(
+                filter,
+                update,
+                cancellationToken: cancellationToken);
+        }
+        
+        private async Task MarkEmailAsSentAsync(
+            string notificationId,
+            CancellationToken cancellationToken)
+        {
+            var collection = context.GetCollection<NotificationDocument>("notifications");
+
+            var filter =
+                Builders<NotificationDocument>
+                    .Filter.And(
+                        Builders<NotificationDocument>
+                            .Filter.Eq(x => x.Id, notificationId),
+
+                        Builders<NotificationDocument>
+                            .Filter.Eq("channels.type", "Email"));
+
+            var update = Builders<NotificationDocument>
+                .Update
+                .Set(
+                    "channels.$.status",
+                    NotificationChannelStatus.Sent)
+                .Set(
+                    "channels.$.sentAt",
+                    DateTimeOffset.UtcNow);
+
+            await collection.UpdateOneAsync(
+                filter,
+                update,
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task MarkEmailAsFailedAsync(
+            string notificationId,
+            CancellationToken cancellationToken)
+        {
+            var collection = context.GetCollection<NotificationDocument>("notifications");
+
+            var filter =
+                Builders<NotificationDocument>
+                    .Filter.And(
+                        Builders<NotificationDocument>
+                            .Filter.Eq(x => x.Id, notificationId),
+
+                        Builders<NotificationDocument>
+                            .Filter.Eq("channels.type", "Email"));
+
+            var update = Builders<NotificationDocument>
+                .Update
+                .Set(
+                    "channels.$.status",
+                    NotificationChannelStatus.Failed);
+
+            await collection.UpdateOneAsync(
+                filter,
+                update,
+                cancellationToken: cancellationToken);
         }
     }
 }

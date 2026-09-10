@@ -2,6 +2,5 @@
 {
     public sealed record NotificationCreatedMessage(
         string MessageId,
-        string NotificationId,
-        string UserId);
+        string NotificationId);
 }
