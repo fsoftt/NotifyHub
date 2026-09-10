@@ -28,6 +28,7 @@ namespace NotifyHub.Api.Features.Notifications.Create
                 Id = Guid.NewGuid().ToString(),
                 UserId = command.UserId,
                 Email = command.Email,
+                PushRecipient = command.PushRecipient,
                 Type = command.Type,
 
                 Content = new NotificationContentDocument
@@ -40,6 +41,11 @@ namespace NotifyHub.Api.Features.Notifications.Create
                     new NotificationChannelDocument 
                     {
                         Type = "Email",
+                        Status = NotificationChannelStatus.Pending
+                    },
+                    new NotificationChannelDocument
+                    {
+                        Type = "Push",
                         Status = NotificationChannelStatus.Pending
                     }
                 ],

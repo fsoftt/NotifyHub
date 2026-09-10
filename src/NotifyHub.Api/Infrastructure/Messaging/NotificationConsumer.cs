@@ -10,17 +10,20 @@ namespace NotifyHub.Api.Infrastructure.Messaging
     public sealed class NotificationConsumer
     {
         private readonly MongoContext context;
+        private readonly IPushSender pushSender;
         private readonly IEmailSender emailSender;
         private readonly IdempotencyStore idempotencyStore;
         private readonly IdempotencyOptions idempotencyOptions;
 
         public NotificationConsumer(
             MongoContext context,
+            IPushSender pushSender,
             IEmailSender emailSender,
             IdempotencyStore idempotencyStore,
             IOptions<IdempotencyOptions> idempotencyOptions)
         {
             this.context = context;
+            this.pushSender = pushSender;
             this.emailSender = emailSender;
             this.idempotencyStore = idempotencyStore;
             this.idempotencyOptions = idempotencyOptions.Value;
@@ -55,7 +58,38 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                     return;
                 }
 
-                await ProcessEmailAsync(notification, cancellationToken);
+                var errors = new List<Exception>();
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(notification.Email))
+                    {
+                        await ProcessEmailAsync(notification, cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                }
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(notification.PushRecipient))
+                    {
+                        await ProcessPushAsync(notification, cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                }
+
+                if (errors.Count > 0)
+                {
+                    throw new AggregateException(
+                        "One or more notification channels failed.",
+                        errors);
+                }
 
                 await idempotencyStore.MarkProcessedAsync(
                     message.MessageId,
@@ -118,8 +152,16 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             NotificationDocument notification,
             CancellationToken cancellationToken)
         {
-            await MarkEmailAsSendingAsync(
+            var emailChannel = notification.Channels.FirstOrDefault(x => x.Type == "Email");
+            if (emailChannel is null
+                || emailChannel.Status == NotificationChannelStatus.Sent)
+            {
+                return;
+            }
+
+            await MarkAsSendingAsync(
                 notification.Id,
+                "Email",
                 cancellationToken);
 
             var idempotencyKey = $"{notification.Id}:Email";
@@ -133,22 +175,73 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                     notification.Content.Message,
                     cancellationToken);
 
-                await MarkEmailAsSentAsync(
-                    notification.Id, 
+                await MarkAsSentAsync(
+                    notification.Id,
+                    "Email",
                     cancellationToken);
             }
             catch
             {
-                await MarkEmailAsFailedAsync(
-                    notification.Id, 
+                await MarkAsFailedAsync(
+                    notification.Id,
+                    "Email",
                     cancellationToken);
 
                 throw;
             }
         }
 
-        private async Task MarkEmailAsSendingAsync(
+        private async Task ProcessPushAsync(
+            NotificationDocument notification,
+            CancellationToken cancellationToken)
+        {
+            var emailChannel = notification.Channels.FirstOrDefault(x => x.Type == "Push");
+            if (emailChannel is null
+                || emailChannel.Status == NotificationChannelStatus.Sent)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(notification.PushRecipient))
+            {
+                return;
+            }
+
+            await MarkAsSendingAsync(
+                notification.Id,
+                "Push",
+                cancellationToken);
+
+            var idempotencyKey = $"{notification.Id}:Push";
+
+            try
+            {
+                await pushSender.SendAsync(
+                    idempotencyKey,
+                    notification.PushRecipient,
+                    notification.Content.Title,
+                    notification.Content.Message,
+                    cancellationToken);
+
+                await MarkAsSentAsync(
+                    notification.Id,
+                    "Push",
+                    cancellationToken);
+            }
+            catch (Exception)
+            {
+                await MarkAsFailedAsync(
+                    notification.Id,
+                    "Push",
+                    cancellationToken);
+
+                throw;
+            }
+        }
+
+        private async Task MarkAsSendingAsync(
             string notificationId,
+            string notificationType,
             CancellationToken cancellationToken)
         {
             var collection = context.GetCollection<NotificationDocument>("notifications");
@@ -160,7 +253,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("Channels.Type", "Email"),
+                            .Filter.Eq("Channels.Type", notificationType),
 
                         Builders<NotificationDocument>
                             .Filter.Eq("Channels.Status", NotificationChannelStatus.Pending));
@@ -177,8 +270,9 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 cancellationToken: cancellationToken);
         }
         
-        private async Task MarkEmailAsSentAsync(
+        private async Task MarkAsSentAsync(
             string notificationId,
+            string notificationType,
             CancellationToken cancellationToken)
         {
             var collection = context.GetCollection<NotificationDocument>("notifications");
@@ -190,7 +284,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("Channels.Type", "Email"));
+                            .Filter.Eq("Channels.Type", notificationType));
 
             var update = Builders<NotificationDocument>
                 .Update
@@ -207,8 +301,9 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 cancellationToken: cancellationToken);
         }
 
-        private async Task MarkEmailAsFailedAsync(
+        private async Task MarkAsFailedAsync(
             string notificationId,
+            string notificationType,
             CancellationToken cancellationToken)
         {
             var collection = context.GetCollection<NotificationDocument>("notifications");
@@ -220,7 +315,7 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("Channels.Type", "Email"));
+                            .Filter.Eq("Channels.Type", notificationType));
 
             var update = Builders<NotificationDocument>
                 .Update

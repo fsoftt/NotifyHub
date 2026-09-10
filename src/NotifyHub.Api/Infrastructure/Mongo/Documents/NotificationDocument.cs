@@ -6,6 +6,7 @@
         public string? UserId { get; init; } = default!;
         public string Email { get; init; } = default!;
         public string Type { get; init; } = default!;
+        public string? PushRecipient { get; init; }
 
         public NotificationContentDocument Content { get; init; } = default!;
 

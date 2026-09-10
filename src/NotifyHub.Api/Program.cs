@@ -58,6 +58,7 @@ builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<NotificationConsumer>();
 builder.Services.AddHostedService<RabbitMqConsumerWorker>();
 builder.Services.AddSingleton<IEmailSender, ResendEmailSender>();
+builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 
 var app = builder.Build();
 

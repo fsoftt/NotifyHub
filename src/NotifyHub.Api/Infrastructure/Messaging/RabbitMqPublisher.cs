@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using SharpCompress.Factories;
 using System.Text;
 using System.Text.Json;
 
@@ -8,6 +7,8 @@ namespace NotifyHub.Api.Infrastructure.Messaging
 {
     public sealed class RabbitMqPublisher : IAsyncDisposable
     {
+        private const int MaxPublishAttempts = 2;
+
         private readonly RabbitMqOptions options;
         private readonly SemaphoreSlim connectionLock = new(1, 1);
 
@@ -77,31 +78,70 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             T message,
             CancellationToken cancellationToken)
         {
-            var channel = await GetChannelAsync(cancellationToken);
+            for (var attempt = 1;
+                attempt <= MaxPublishAttempts;
+                attempt++)
+            {
+                try
+                {
+                    var channel = await GetChannelAsync(cancellationToken);
 
-            var json = JsonSerializer.Serialize(message);
-            var body = Encoding.UTF8.GetBytes(json);
+                    var json = JsonSerializer.Serialize(message);
+                    var body = Encoding.UTF8.GetBytes(json);
 
-            await channel.BasicPublishAsync(
-                exchange: exchangeName,
-                routingKey: routingKey,
-                body: body,
-                cancellationToken: cancellationToken);
+                    await channel.BasicPublishAsync(
+                        exchange: exchangeName,
+                        routingKey: routingKey,
+                        body: body,
+                        cancellationToken: cancellationToken);
+
+                    return;
+                }
+                catch (Exception) when (attempt < MaxPublishAttempts)
+                {
+                    await InvalidateConnectionAsync();
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                }
+            }
+
+            throw new InvalidOperationException("RabbitMQ publish failed.");
+        }
+
+        private async Task InvalidateConnectionAsync()
+        {
+            await connectionLock.WaitAsync();
+
+            try
+            {
+                await CleanConnectionAsync();
+            }
+            finally
+            {
+                connectionLock.Release();
+            }
         }
 
         public async ValueTask DisposeAsync()
         {
+            await CleanConnectionAsync();
+
+            connectionLock.Dispose();
+        }
+
+        private async Task CleanConnectionAsync()
+        {
             if (channel is not null)
             {
                 await channel.DisposeAsync();
+                channel = null;
             }
 
             if (connection is not null)
             {
                 await connection.DisposeAsync();
+                connection = null;
             }
-
-            connectionLock.Dispose();
         }
     }
 }
