@@ -122,9 +122,12 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                 notification.Id,
                 cancellationToken);
 
+            var idempotencyKey = $"{notification.Id}:Email";
+
             try
             {
                 await emailSender.SendAsync(
+                    idempotencyKey,
                     notification.Email,
                     notification.Content.Title,
                     notification.Content.Message,

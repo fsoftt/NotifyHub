@@ -3,6 +3,7 @@
     public interface IEmailSender
     {
         Task SendAsync(
+            string idempotencyKey,
             string recipient,
             string subject,
             string body,
