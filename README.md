@@ -66,11 +66,15 @@ Create user secrets for RabbitMQ credentials (recommended for local development)
    dotnet user-secrets set "RabbitMq:Username" "your-rabbit-username"
    dotnet user-secrets set "RabbitMq:Password" "your-rabbit-password"
 
+   # Set an Email API key used by the email delivery provider (replace value)
+   dotnet user-secrets set "Email:ApiKey" "your-email-api-key"
+
 Other settings you may want to set in user secrets or environment variables:
 - MongoDb:ConnectionString — e.g. mongodb://localhost:27017/notifyhub
 - Redis:ConnectionString — e.g. localhost:6379
 - Notification:FromEmail — sender address for email deliveries
 - Any API keys or SMTP credentials required for real delivery providers
+- Email:ApiKey — API key for the configured email provider (set via user secrets or environment variable)
 
 3) Run the API
 

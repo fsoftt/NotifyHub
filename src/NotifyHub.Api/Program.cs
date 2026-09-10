@@ -7,6 +7,7 @@ using NotifyHub.Api.Features.Notifications.MarkAsRead;
 using NotifyHub.Api.Infrastructure.Messaging;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Notifications;
+using Resend;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +29,22 @@ builder.Services
     .ValidateOnStart();
 
 builder.Services
+    .AddOptions<EmailOptions>()
+    .BindConfiguration(EmailOptions.SectionName)
+    .Validate(
+        options => !string.IsNullOrWhiteSpace(options.ApiKey),
+        "Email:ApiKey must be configured.")
+    .ValidateOnStart();
+
+builder.Services
     .AddOptions<IdempotencyOptions>()
     .BindConfiguration(IdempotencyOptions.SectionName)
     .Validate(
         options => options.LeaseSeconds > 0,
-        "LeaseSeconds must be a positive integer.");
+        "LeaseSeconds must be a positive integer.")
+    .ValidateOnStart();
 
+builder.Services.AddHttpClient<ResendClient>();
 builder.Services.AddScoped<MongoInitializer>();
 builder.Services.AddScoped<RabbitMqPublisher>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.Create.Handler>();
@@ -42,11 +53,11 @@ builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetByUser.Handle
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.GetSummary.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAsRead.Handler>();
 builder.Services.AddScoped<NotifyHub.Api.Features.Notifications.MarkAllAsRead.Handler>();
-builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<NotificationConsumer>();
 builder.Services.AddHostedService<RabbitMqConsumerWorker>();
+builder.Services.AddSingleton<IEmailSender, ResendEmailSender>();
 
 var app = builder.Build();
 

@@ -160,18 +160,18 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("channels.type", "Email"),
+                            .Filter.Eq("Channels.Type", "Email"),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("channels.status", NotificationChannelStatus.Pending));
+                            .Filter.Eq("Channels.Status", NotificationChannelStatus.Pending));
 
             var update = Builders<NotificationDocument>
                 .Update
                 .Set(
-                    "channels.$.status",
+                    "Channels.$.Status",
                     NotificationChannelStatus.Sending);
 
-            await collection.UpdateOneAsync(
+            UpdateResult updated = await collection.UpdateOneAsync(
                 filter,
                 update,
                 cancellationToken: cancellationToken);
@@ -190,18 +190,18 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("channels.type", "Email"));
+                            .Filter.Eq("Channels.Type", "Email"));
 
             var update = Builders<NotificationDocument>
                 .Update
                 .Set(
-                    "channels.$.status",
+                    "Channels.$.Status",
                     NotificationChannelStatus.Sent)
                 .Set(
                     "channels.$.sentAt",
                     DateTimeOffset.UtcNow);
 
-            await collection.UpdateOneAsync(
+            UpdateResult updated = await collection.UpdateOneAsync(
                 filter,
                 update,
                 cancellationToken: cancellationToken);
@@ -220,15 +220,15 @@ namespace NotifyHub.Api.Infrastructure.Messaging
                             .Filter.Eq(x => x.Id, notificationId),
 
                         Builders<NotificationDocument>
-                            .Filter.Eq("channels.type", "Email"));
+                            .Filter.Eq("Channels.Type", "Email"));
 
             var update = Builders<NotificationDocument>
                 .Update
                 .Set(
-                    "channels.$.status",
+                    "Channels.$.Status",
                     NotificationChannelStatus.Failed);
 
-            await collection.UpdateOneAsync(
+            UpdateResult updated = await collection.UpdateOneAsync(
                 filter,
                 update,
                 cancellationToken: cancellationToken);
