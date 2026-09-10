@@ -35,7 +35,11 @@ namespace NotifyHub.Api.Infrastructure.Messaging
             await using var connection = await factory.CreateConnectionAsync(stoppingToken);
             Console.WriteLine("RabbitMQ Consumer: connection created...");
 
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
+            await using var channel = await connection.CreateChannelAsync(
+                new CreateChannelOptions(
+                    publisherConfirmationsEnabled: true,
+                    publisherConfirmationTrackingEnabled: true),
+                cancellationToken: stoppingToken);
             Console.WriteLine("RabbitMQ Consumer: channel created...");
 
             await RabbitMqTopology.ConfigureAsync(channel, stoppingToken);
