@@ -17,8 +17,8 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] ASP.NET Core API
 - [x] Docker Compose
 - [x] MongoDB
-- [ ] Configuration
-- [ ] MongoContext
+- [x] Configuration
+- [x] MongoContext
 - [ ] First document
 - [ ] Basic CRUD
 
