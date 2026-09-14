@@ -493,13 +493,9 @@ Connection and lifecycle.
 
 Publish a simple event.
 
-> ⚠️ Note (Outbox, preview): from this point on there is a window of inconsistency between saving to Mongo and publishing to RabbitMQ — see section 17 (Outbox). The problem exists from the very first Publisher, not only at the end of the phase. It's documented here on purpose; its resolution is deliberately deferred to 5.14, to master the happy path first before solving the atomicity problem.
+> ⚠️ Note (Outbox): from this point on there is a window of inconsistency between saving to Mongo and publishing to RabbitMQ — see section 17 (Outbox). The problem exists from the very first Publisher. Unlike an earlier draft of this guide, its resolution is **not** deferred to the end of the phase: Outbox comes next, right after the Contract, at 5.6 — see the note there for why.
 
-### 5.5 Consumer
-
-Consume and ACK.
-
-### 5.6 Contract
+### 5.5 Contract
 
 Create:
 
@@ -520,7 +516,34 @@ For example:
 
 Do not unnecessarily duplicate the entire NotificationDocument.
 
-### 5.7 Notification processing
+Moved ahead of Consumer (this guide originally ordered Contract after Consumer): Outbox needs a defined message shape to store before it can store one.
+
+### 5.6 Outbox
+
+Implement Outbox now, immediately after Publisher and Contract exist, to resolve:
+
+```text
+Mongo save
++
+RabbitMQ publish
+```
+
+and the problem:
+
+```text
+Mongo save ✅
+RabbitMQ publish ❌
+```
+
+**Why here and not at the end of the phase (its original position):** Outbox protects the gap between a Mongo save and a RabbitMQ publish. That gap doesn't exist until Publisher (5.4) does both of those things, so Outbox cannot come before it — but it also doesn't depend on Consumer, notification processing, the provider adapters, error classification, retry, idempotency, or connection recovery, which is everything the original ordering made it wait through. Those are real, separate concerns; bundling Outbox after all of them was pedagogically convenient ("resilience stuff, do it near the end"), not a real dependency. The only genuine prerequisites are a working Publisher and a defined message Contract.
+
+One real trade-off from moving it up: building Outbox this early means the "Mongo save succeeds, RabbitMQ publish fails/crashes" failure mode gets fixed before it's ever been observed happening with the naive approach. Accepted deliberately here — the failure mode is already documented and understood (section 17), not something that needs to be felt firsthand to be believed.
+
+### 5.7 Consumer
+
+Consume and ACK.
+
+### 5.8 Notification processing
 
 Separate:
 
@@ -532,7 +555,7 @@ Notification processing
 
 The consumer must not contain channel business logic.
 
-### 5.8 Email
+### 5.9 Email
 
 Separate:
 
@@ -546,7 +569,7 @@ ResendEmailSender
 
 The Email processor must not know Resend's internal details.
 
-### 5.9 Push
+### 5.10 Push
 
 Separate:
 
@@ -560,7 +583,7 @@ FirebasePushSender
 
 Do not couple NotificationConsumer directly to Firebase.
 
-### 5.10 Error classification
+### 5.11 Error classification
 
 Distinguish:
 
@@ -593,7 +616,7 @@ Provider-specific classification must happen in its adapter.
 
 The messaging system must receive a generic transient/permanent failure signal.
 
-### 5.11 Retry
+### 5.12 Retry
 
 Implement:
 
@@ -622,7 +645,7 @@ Nack/requeue
 Publish retry
 ```
 
-### 5.12 Idempotency
+### 5.13 Idempotency
 
 Separate two problems:
 
@@ -640,7 +663,7 @@ For Resend, its idempotency key mechanism can be used.
 
 For providers without an equivalent mechanism, study a strategy of your own.
 
-### 5.13 Connection recovery
+### 5.14 Connection recovery
 
 Implement connection/channel recovery where appropriate.
 
@@ -650,25 +673,6 @@ Distinguish:
 - business retry of the message.
 
 Do not multiply retries unnecessarily.
-
-### 5.14 Outbox
-
-Finally implement Outbox to resolve:
-
-```text
-Mongo save
-+
-RabbitMQ publish
-```
-
-and the problem:
-
-```text
-Mongo save ✅
-RabbitMQ publish ❌
-```
-
-Outbox should be introduced once the basic flow is already understood.
 
 ---
 
@@ -1029,7 +1033,7 @@ MongoDB
 
 Outbox is processed asynchronously.
 
-Do not implement it before understanding the basic flow.
+Built at 5.6, right after Publisher and Contract exist — see that section's note for why it's no longer deferred to the end of the messaging phase.
 
 ---
 
@@ -1246,8 +1250,9 @@ PHASE 5 — MESSAGING
 ⬜ RabbitMQ connection
 ⬜ Topology
 ⬜ Publisher
-⬜ Consumer
 ⬜ Contract
+⬜ Outbox
+⬜ Consumer
 ⬜ Notification processing
 ⬜ Email
 ⬜ Resend
@@ -1258,7 +1263,6 @@ PHASE 5 — MESSAGING
 ⬜ DLQ
 ⬜ Idempotency
 ⬜ Connection recovery
-⬜ Outbox
 
 PHASE 6 — REDIS
 ⬜ Cache

@@ -59,8 +59,9 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [ ] RabbitMQ connection
 - [ ] Topology
 - [ ] Publisher
-- [ ] Consumer
 - [ ] Contract
+- [ ] Outbox — moved up from last; see section 5.6 in the guide for why
+- [ ] Consumer
 - [ ] Notification processing
 - [ ] Email (Resend)
 - [ ] Push (Firebase)
@@ -69,7 +70,6 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [ ] DLQ
 - [ ] Idempotency
 - [ ] Connection recovery
-- [ ] Outbox
 
 ## Phase 6 — Redis
 
