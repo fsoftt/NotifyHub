@@ -29,8 +29,8 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Content
 - [x] Channels
 - [x] Status
-- [ ] Rules
-- [ ] Validation
+- [x] Rules (channel-type uniqueness, Push requires recipients)
+- [x] Validation (Create's Command: email format, required fields, non-empty channels)
 
 ## Phase 3 — Vertical Slices
 
