@@ -4,6 +4,7 @@ using NotifyHub.Api.Features.Notifications.GetById;
 using NotifyHub.Api.Features.Notifications.List;
 using NotifyHub.Api.Features.Notifications.MarkAllAsRead;
 using NotifyHub.Api.Features.Notifications.MarkAsRead;
+using NotifyHub.Api.Infrastructure.Messaging;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Notifications;
 
@@ -15,9 +16,19 @@ builder.Services.AddSingleton<MongoContext>();
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+var rabbitMqOptions = builder.Configuration.GetSection(RabbitMqOptions.SectionName).Get<RabbitMqOptions>()
+    ?? new RabbitMqOptions();
+var rabbitMqConnection = await RabbitMqConnection.CreateAsync(rabbitMqOptions);
+builder.Services.AddSingleton(rabbitMqConnection);
+
 var app = builder.Build();
 
 await NotificationIndexes.EnsureCreatedAsync(app.Services.GetRequiredService<MongoContext>().Database);
+
+await using (var setupChannel = await rabbitMqConnection.CreateChannelAsync())
+{
+    await NotificationsTopology.DeclareAsync(setupChannel);
+}
 
 app.MapGet("/", () => "NotifyHub API");
 
