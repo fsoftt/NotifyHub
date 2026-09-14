@@ -84,9 +84,9 @@ Models/
 DTOs/
 ```
 
-Features must be grouped by feature when appropriate.
+Features must be grouped by feature when appropriate, starting from the first endpoint — there is no flat/interim stage where endpoints live outside `Features/` before being "promoted" into it later. Picking the final location once costs nothing; writing it flat and moving it afterward is pure rework.
 
-Example:
+Example, once a slice has real logic worth separating from HTTP binding:
 
 ```text
 Features/
@@ -96,6 +96,8 @@ Features/
         ├── Handler.cs
         └── Endpoint.cs
 ```
+
+That three-file split is earned, not default. A slice that's a couple of lines of "map the request, call the driver, return a result" (the first `Create`/`GetById` slices, for example) stays a single `Endpoint.cs` — splitting a 3-line insert into Command+Handler+Endpoint would be three files each holding almost nothing, which is exactly the "classes created only to demonstrate patterns" rule 2.3 warns about. Split into Command/Handler once a slice actually has business logic distinct from request binding (validation rules, multi-step orchestration, calling more than one collaborator) — that's a real, current reason, not a future one.
 
 Technical infrastructure can remain separate:
 
@@ -192,7 +194,7 @@ Do not create microservices initially.
 ```text
 NotifyHub/
 │
-├── NotifyHub.sln
+├── NotifyHub.slnx
 │
 ├── docker-compose.yml
 │
@@ -200,6 +202,8 @@ NotifyHub/
 │   └── NotifyHub.Api/
 │       ├── Features/
 │       │   └── Notifications/
+│       │       ├── Create/
+│       │       └── GetById/
 │       │
 │       ├── Infrastructure/
 │       │   ├── Mongo/
@@ -213,7 +217,7 @@ NotifyHub/
     └── NotifyHub.Api.Tests/
 ```
 
-The structure can evolve as real needs appear.
+`NotifyHub.slnx` — the current SDK's XML solution format, not the legacy `.sln` — and `Features/Notifications/Create`/`GetById` exist from Phase 1's basic endpoints onward, not from Phase 3. The structure can otherwise evolve as real needs appear.
 
 ---
 
@@ -363,9 +367,9 @@ Goal: have a .NET API working with MongoDB.
 6. Create MongoContext.
 7. Create NotificationDocument.
 8. Create first collection.
-9. Create basic endpoint.
+9. Create basic endpoint (`Features/Notifications/Create/Endpoint.cs` — single-file slice, no Command/Handler split yet; see section 2.4).
 10. Save the first Notification.
-11. Read it back from MongoDB.
+11. Read it back from MongoDB (`Features/Notifications/GetById/Endpoint.cs`).
 
 At the end:
 
@@ -396,19 +400,19 @@ Do not create a complex user model.
 
 # Phase 3 — Vertical Slices
 
-Create the real features as slices:
+`Create` and `GetById` already exist as slices from Phase 1 (section 2.4 — vertical slicing starts at the first endpoint, not at this phase). Phase 3 adds the remaining ones:
 
 ```text
 Features/
 └── Notifications/
-    ├── Create/
-    ├── GetById/
+    ├── Create/         (done — Phase 1)
+    ├── GetById/         (done — Phase 1)
     ├── List/
     ├── MarkAsRead/
     └── MarkAllAsRead/
 ```
 
-Each slice must contain only what it needs.
+Each slice must contain only what it needs. Revisit `Create`/`GetById` here too if by this point they've grown real logic worth splitting into `Command.cs`/`Handler.cs` — that's the trigger, not the phase boundary itself.
 
 > Note: when building `Create`, revisit the API-level idempotency question described in section 16 (an HTTP client retrying `POST /notifications` could create duplicate Notifications; not resolved yet).
 
