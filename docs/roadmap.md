@@ -13,8 +13,8 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 1 — Foundations
 
-- [ ] Create solution
-- [ ] ASP.NET Core API
+- [x] Create solution
+- [x] ASP.NET Core API
 - [ ] Docker Compose
 - [ ] MongoDB
 - [ ] Configuration
