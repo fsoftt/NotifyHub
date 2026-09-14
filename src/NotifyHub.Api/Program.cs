@@ -5,6 +5,7 @@ using NotifyHub.Api.Features.Notifications.List;
 using NotifyHub.Api.Features.Notifications.MarkAllAsRead;
 using NotifyHub.Api.Features.Notifications.MarkAsRead;
 using NotifyHub.Api.Infrastructure.Mongo;
+using NotifyHub.Api.Infrastructure.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
+
+await NotificationIndexes.EnsureCreatedAsync(app.Services.GetRequiredService<MongoContext>().Database);
 
 app.MapGet("/", () => "NotifyHub API");
 

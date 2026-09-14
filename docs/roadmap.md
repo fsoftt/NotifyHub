@@ -42,17 +42,17 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 4 — MongoDB + .NET
 
-- [ ] Projections
-- [ ] UpdateOne
-- [ ] UpdateMany
-- [ ] Atomic updates
-- [ ] Indexes
-- [ ] Aggregation
-- [ ] Cursor pagination
-- [ ] Bulk operations
-- [ ] TTL
-- [ ] Transactions
-- [ ] Optimization
+- [x] Projections (List returns NotificationSummary, not the full document)
+- [x] UpdateOne (done early — Phase 3, MarkAsRead's FindOneAndUpdate)
+- [x] UpdateMany (done early — Phase 3, MarkAllAsRead)
+- [x] Atomic updates (done early — Phase 3, array-filtered updates on both)
+- [x] Indexes (compound Email+CreatedAt index, created at startup)
+- [ ] Aggregation — no real feature needs it yet; deferred rather than inventing one
+- [x] Cursor pagination (List's keyset cursor, CreatedAt+Id tie-break)
+- [ ] Bulk operations — real need arrives with Phase 5's batch message/channel processing
+- [ ] TTL — real need arrives with Phase 5's processed_messages idempotency table
+- [ ] Transactions — real need arrives with Phase 5's Outbox (Mongo save + RabbitMQ publish)
+- [ ] Optimization — ongoing activity, not a single deliverable; revisited once there's real load/query data to look at
 
 ## Phase 5 — Messaging
 
