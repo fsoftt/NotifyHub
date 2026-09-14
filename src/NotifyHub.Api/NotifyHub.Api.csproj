@@ -10,4 +10,8 @@
     <PackageReference Include="MongoDB.Driver" Version="3.11.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="NotifyHub.Api.Tests" />
+  </ItemGroup>
+
 </Project>

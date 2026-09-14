@@ -142,6 +142,18 @@ This convention is enforced via `.editorconfig` (see `/.editorconfig` at the rep
 
 ---
 
+## 2.7 Unit tests are not a separate phase
+
+Section 19/Phase 8 describe the *kinds* of testing this project ends up with, not a single point in time where testing starts. In practice: any change that introduces deterministic, logic-bearing code (a mapping rule, a classification, a validation, a retry policy — see section 19's own list) adds or extends a unit test in the **same PR**, starting from whichever lesson first introduces that kind of code, not deferred to Phase 8.
+
+This does not mean testing everything early. Code that's pure I/O against Mongo/RabbitMQ/external providers (a thin `GetById` lookup, `MongoContext` itself) stays out of unit tests — mocking a driver call just re-asserts the mock's own setup. That kind of code waits for the integration tests (Testcontainers) Phase 8 already plans for. The dividing line is the one section 19 already draws: unit tests for deterministic components, integration tests for real I/O.
+
+`tests/NotifyHub.Api.Tests` (xUnit + FluentAssertions, per section 3) exists from the first lesson that has something worth testing this way — not created ahead of need, but also not delayed once the need exists.
+
+CI (`.github/workflows/ci.yml`) runs `dotnet build` and `dotnet test` on every push to `main` and every pull request, so this rule is enforced by a failing check, not only by habit.
+
+---
+
 # 3. Technology stack
 
 ## Backend
@@ -1045,7 +1057,7 @@ Do not introduce Redis simply because it's a popular technology.
 
 # 19. Testing
 
-The project must end up with different levels of tests.
+The project must end up with different levels of tests. See section 2.7 for when each level actually gets built — unit tests start as soon as there's deterministic logic to test, not at this phase.
 
 ## Unit tests
 
@@ -1466,3 +1478,4 @@ The project must be built as a guided learning process, not a code dump.
 - One lesson/phase-step per branch and PR where practical, matching the incremental-construction rule in section 2.1.
 - Open a PR into `main`, review the diff yourself, then merge. Squash or regular merge is fine; force-pushing shared branches is not.
 - `main` protection currently requires a pull request before merging (owner can override in an emergency via GitHub's admin bypass); no direct pushes are expected as part of the normal workflow.
+- CI (`.github/workflows/ci.yml`) runs `dotnet build` + `dotnet test` on every push to `main` and every PR — see section 2.7.

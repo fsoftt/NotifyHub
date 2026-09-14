@@ -10,6 +10,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] `.editorconfig` enforcing no-underscore private fields
 - [x] Branch protection on `main` (PRs required)
 - [x] `.gitignore` (.NET build output)
+- [x] CI (`dotnet build` + `dotnet test` on push/PR)
 
 ## Phase 1 — Foundations
 
@@ -89,7 +90,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 8 — Testing
 
-- [ ] Unit tests
+- [~] Unit tests (started Lesson 7 — grows incrementally per section 2.7, not a single deliverable)
 - [ ] Integration tests
 - [ ] Testcontainers
 - [ ] API tests
