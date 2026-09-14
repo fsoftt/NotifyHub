@@ -1,0 +1,114 @@
+# NotifyHub Roadmap
+
+Tracks real progress against the phases defined in [`docs/project-guide.md`](project-guide.md) (section 23). Updated as work lands; shown after every assistant response while this project is active.
+
+## Phase 0 — Repository & workflow
+
+- [x] Public GitHub repo created (SSH remote)
+- [x] MIT license
+- [x] Project guide committed (`docs/project-guide.md`, English)
+- [x] `.editorconfig` enforcing no-underscore private fields
+- [x] Branch protection on `main` (PRs required)
+- [ ] `.gitignore` (add once `dotnet new` generates build output)
+
+## Phase 1 — Foundations
+
+- [ ] Create solution
+- [ ] ASP.NET Core API
+- [ ] Docker Compose
+- [ ] MongoDB
+- [ ] Configuration
+- [ ] MongoContext
+- [ ] First document
+- [ ] Basic CRUD
+
+## Phase 2 — Domain
+
+- [ ] Notification
+- [ ] Content
+- [ ] Channels
+- [ ] Status
+- [ ] Rules
+- [ ] Validation
+
+## Phase 3 — Vertical Slices
+
+- [ ] Create
+- [ ] GetById
+- [ ] List
+- [ ] MarkAsRead
+- [ ] MarkAllAsRead
+
+## Phase 4 — MongoDB + .NET
+
+- [ ] Projections
+- [ ] UpdateOne
+- [ ] UpdateMany
+- [ ] Atomic updates
+- [ ] Indexes
+- [ ] Aggregation
+- [ ] Cursor pagination
+- [ ] Bulk operations
+- [ ] TTL
+- [ ] Transactions
+- [ ] Optimization
+
+## Phase 5 — Messaging
+
+- [ ] RabbitMQ connection
+- [ ] Topology
+- [ ] Publisher
+- [ ] Consumer
+- [ ] Contract
+- [ ] Notification processing
+- [ ] Email (Resend)
+- [ ] Push (Firebase)
+- [ ] Error classification
+- [ ] Retry
+- [ ] DLQ
+- [ ] Idempotency
+- [ ] Connection recovery
+- [ ] Outbox
+
+## Phase 6 — Redis
+
+- [ ] Cache
+- [ ] Rate limiting
+- [ ] Deduplication
+- [ ] Other justified use cases
+
+## Phase 7 — Reliability
+
+- [ ] Failure scenarios
+- [ ] Retry strategy
+- [ ] Idempotency
+- [ ] Outbox
+- [ ] DLQ handling
+- [ ] Concurrency
+- [ ] Recovery
+
+## Phase 8 — Testing
+
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Testcontainers
+- [ ] API tests
+- [ ] Consumer tests
+
+## Phase 9 — Observability
+
+- [ ] Structured logging
+- [ ] Health checks
+- [ ] OpenTelemetry
+- [ ] Tracing
+- [ ] Metrics
+
+## Phase 10 — Portfolio
+
+- [ ] Docker Compose
+- [ ] README
+- [ ] Architecture diagram
+- [ ] ADRs
+- [ ] API documentation
+- [ ] Test documentation
+- [ ] CI/CD

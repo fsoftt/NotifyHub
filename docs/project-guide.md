@@ -1,80 +1,80 @@
-# NotifyHub — Guía Maestra de Construcción
+# NotifyHub — Master Build Guide
 
-## 1. Propósito del proyecto
+## 1. Project purpose
 
-NotifyHub es un proyecto de portafolio y aprendizaje para construir, desde cero, un **centro de notificaciones distribuido en .NET**, usando MongoDB/NoSQL y agregando progresivamente mensajería, proveedores externos, resiliencia, testing y observabilidad.
+NotifyHub is a portfolio and learning project to build, from scratch, a **distributed notification hub in .NET**, using MongoDB/NoSQL and progressively adding messaging, external providers, resilience, testing, and observability.
 
-El objetivo principal **no es construir muchas tecnologías por construirlas**, sino aprender por qué cada pieza existe, qué problema resuelve y dónde debe vivir.
+The main goal is **not to use many technologies for their own sake**, but to learn why each piece exists, what problem it solves, and where it belongs.
 
-El proyecto debe comenzar sencillo y evolucionar de forma incremental.
-
----
-
-# 2. Reglas obligatorias para cualquier asistente/Copilot
-
-Estas reglas tienen prioridad durante toda la construcción.
-
-## 2.1 Construcción incremental
-
-No generar todo el proyecto de una vez.
-
-Cada lección/sprint debe:
-
-1. Explicar el problema.
-2. Explicar la decisión arquitectónica.
-3. Mostrar la estructura afectada.
-4. Indicar exactamente qué archivos crear/modificar.
-5. Dar código únicamente de lo que se implementará ahora.
-6. Probar/verificar el resultado.
-7. Mostrar qué queda pendiente.
-
-No implementar funcionalidades futuras anticipadamente.
+The project must start simple and evolve incrementally.
 
 ---
 
-## 2.2 Diferenciar código implementable de ejemplos
+# 2. Mandatory rules for any assistant/Copilot
 
-Todo código debe estar claramente marcado:
+These rules take priority throughout the build.
 
-### 🛠️ IMPLEMENTAR
+## 2.1 Incremental construction
 
-Código que debe agregarse al proyecto actual.
+Do not generate the whole project at once.
 
-### 💡 EJEMPLO
+Each lesson/sprint must:
 
-Código exclusivamente ilustrativo.
+1. Explain the problem.
+2. Explain the architectural decision.
+3. Show the affected structure.
+4. Indicate exactly which files to create/modify.
+5. Give code only for what is being implemented now.
+6. Test/verify the result.
+7. Show what remains pending.
 
-No agregar ejemplos al proyecto salvo que posteriormente se indique que deben implementarse.
+Do not implement future functionality ahead of time.
 
 ---
 
-## 2.3 Evitar spaghetti y sobrearquitectura
+## 2.2 Distinguish implementable code from examples
 
-No crear clases, interfaces, servicios, repositorios o abstracciones solamente porque podrían ser útiles en el futuro.
+All code must be clearly marked:
 
-Una abstracción debe tener una razón actual.
+### 🛠️ IMPLEMENT
 
-Evitar:
+Code that must be added to the current project.
+
+### 💡 EXAMPLE
+
+Code that is purely illustrative.
+
+Do not add examples to the project unless it is later indicated that they should be implemented.
+
+---
+
+## 2.3 Avoid spaghetti and over-architecture
+
+Do not create classes, interfaces, services, repositories, or abstractions just because they might be useful in the future.
+
+An abstraction must have a current reason to exist.
+
+Avoid:
 
 - Generic Repository.
 - Generic Service.
-- Managers genéricos.
-- Wrappers innecesarios.
-- Interfaces para cada clase sin necesidad.
-- Clases creadas únicamente para demostrar patrones.
-- Microservicios prematuros.
-- CQRS/MediatR donde no aporten valor real.
-- Complejidad distribuida antes de dominar el flujo básico.
+- Generic managers.
+- Unnecessary wrappers.
+- Interfaces for every class without need.
+- Classes created only to demonstrate patterns.
+- Premature microservices.
+- CQRS/MediatR where they add no real value.
+- Distributed complexity before mastering the basic flow.
 
-Preferir código simple, explícito y fácil de seguir.
+Prefer simple, explicit, easy-to-follow code.
 
 ---
 
 ## 2.4 Vertical Slice
 
-La arquitectura debe favorecer **Vertical Slice Architecture**.
+The architecture must favor **Vertical Slice Architecture**.
 
-No convertir el proyecto en una arquitectura horizontal donde toda la aplicación esté dividida únicamente por:
+Do not turn the project into a horizontal architecture where the whole application is split only by:
 
 ```text
 Controllers/
@@ -84,9 +84,9 @@ Models/
 DTOs/
 ```
 
-Las funcionalidades deben agruparse por feature cuando corresponda.
+Features must be grouped by feature when appropriate.
 
-Ejemplo:
+Example:
 
 ```text
 Features/
@@ -97,7 +97,7 @@ Features/
         └── Endpoint.cs
 ```
 
-La infraestructura técnica puede mantenerse separada:
+Technical infrastructure can remain separate:
 
 ```text
 Infrastructure/
@@ -108,39 +108,39 @@ Infrastructure/
 
 ---
 
-## 2.5 Buenas prácticas sobre shortcuts
+## 2.5 Good practices over shortcuts
 
-Si existe una solución rápida pero arquitectónicamente mala, explicar por qué y preferir la solución correcta.
+If a quick solution exists but is architecturally bad, explain why and prefer the correct solution.
 
-No sacrificar diseño por ahorrar unas líneas de código.
+Do not sacrifice design to save a few lines of code.
 
-Pero tampoco introducir complejidad que el proyecto todavía no necesita.
+But also do not introduce complexity the project does not yet need.
 
 ---
 
-## 2.6 Convenciones de C#
+## 2.6 C# conventions
 
-No usar `_` como prefijo de campos privados.
+Do not use `_` as a prefix for private fields.
 
-Preferir:
+Prefer:
 
 ```csharp
 private readonly MongoContext mongoContext;
 ```
 
-No:
+Not:
 
 ```csharp
 private readonly MongoContext _mongoContext;
 ```
 
-Usar nombres claros y descriptivos.
+Use clear, descriptive names.
 
-Esta convención se refuerza mediante `.editorconfig` (ver `/.editorconfig` en la raíz del repo), no solo mediante revisión manual — así el analizador de .NET marca cualquier campo con prefijo `_` como advertencia, incluyendo código generado por asistentes.
+This convention is enforced via `.editorconfig` (see `/.editorconfig` at the repo root), not just manual review — so the .NET analyzer flags any field with an `_` prefix as a warning, including code generated by assistants.
 
 ---
 
-# 3. Stack tecnológico
+# 3. Technology stack
 
 ## Backend
 
@@ -150,7 +150,7 @@ Esta convención se refuerza mediante `.editorconfig` (ver `/.editorconfig` en l
 - MongoDB
 - MongoDB.Driver
 
-## Mensajería
+## Messaging
 
 - RabbitMQ
 - RabbitMQ.Client
@@ -163,7 +163,7 @@ Esta convención se refuerza mediante `.editorconfig` (ver `/.editorconfig` en l
 
 - Firebase Cloud Messaging (FCM)
 
-## Contenedores
+## Containers
 
 - Docker
 - Docker Compose
@@ -172,22 +172,22 @@ Esta convención se refuerza mediante `.editorconfig` (ver `/.editorconfig` en l
 
 - xUnit
 - FluentAssertions
-- Testcontainers cuando corresponda
+- Testcontainers where appropriate
 
-## Observabilidad
+## Observability
 
 - ILogger
 - Health Checks
 - OpenTelemetry
-- Métricas y tracing posteriormente
+- Metrics and tracing later
 
 ---
 
-# 4. Arquitectura inicial
+# 4. Initial architecture
 
-Comenzar con **un solo proyecto API**.
+Start with **a single API project**.
 
-No crear microservicios inicialmente.
+Do not create microservices initially.
 
 ```text
 NotifyHub/
@@ -213,15 +213,15 @@ NotifyHub/
     └── NotifyHub.Api.Tests/
 ```
 
-La estructura puede evolucionar conforme aparezcan necesidades reales.
+The structure can evolve as real needs appear.
 
 ---
 
-# 5. Dominio funcional
+# 5. Functional domain
 
-NotifyHub administra notificaciones.
+NotifyHub manages notifications.
 
-Una notificación puede utilizar múltiples canales:
+A notification can use multiple channels:
 
 ```text
 Notification
@@ -230,7 +230,7 @@ Notification
 └── InApp
 ```
 
-Cada canal tiene su propio estado:
+Each channel has its own status:
 
 ```text
 Pending
@@ -239,7 +239,7 @@ Sent
 Failed
 ```
 
-Ejemplo:
+Example:
 
 ```text
 Notification
@@ -248,40 +248,40 @@ Notification
 └── InApp → Pending
 ```
 
-Los canales deben poder evolucionar independientemente.
+Channels must be able to evolve independently.
 
 ---
 
-# 6. NotifyHub NO administra usuarios
+# 6. NotifyHub does NOT manage users
 
-NotifyHub no será inicialmente un sistema completo de usuarios.
+NotifyHub will not initially be a full user system.
 
-Una notificación debe tener un `Email` explícito cuando necesite enviar correo.
+A notification must have an explicit `Email` when it needs to send mail.
 
-No usar:
+Do not use:
 
 ```text
 UserId = email
 ```
 
-`UserId`, si existe, es un identificador/referencia y no debe utilizarse como dirección de correo.
+`UserId`, if it exists, is an identifier/reference and must not be used as an email address.
 
-Para Push, inicialmente se puede utilizar un token de dispositivo explícito.
+For Push, an explicit device token can initially be used.
 
-No crear todavía:
+Do not create yet:
 
 - User service.
 - Authentication system.
 - Device management.
 - User repository.
 
-Esas funcionalidades solamente se agregarán si el proyecto realmente las necesita.
+These features will only be added if the project genuinely needs them.
 
 ---
 
-# 7. Modelo inicial de Notification
+# 7. Initial Notification model
 
-Conceptualmente:
+Conceptually:
 
 ```json
 {
@@ -289,11 +289,10 @@ Conceptualmente:
   "schemaVersion": 1,
   "userId": null,
   "email": "recipient@example.com",
-  "pushRecipient": "device-token",
   "type": "ScoreAssigned",
   "content": {
-    "title": "Nueva partitura",
-    "message": "Se te ha asignado una nueva partitura."
+    "title": "New score",
+    "message": "A new score has been assigned to you."
   },
   "channels": [
     {
@@ -305,43 +304,70 @@ Conceptualmente:
     {
       "type": "Push",
       "status": "Pending",
+      "recipients": [
+        {
+          "token": "device-token-1",
+          "status": "Pending",
+          "sentAt": null,
+          "deliveredAt": null
+        },
+        {
+          "token": "device-token-2",
+          "status": "Pending",
+          "sentAt": null,
+          "deliveredAt": null
+        }
+      ]
+    },
+    {
+      "type": "InApp",
+      "status": "Pending",
       "sentAt": null,
-      "deliveredAt": null
+      "deliveredAt": null,
+      "read": false,
+      "readAt": null
     }
   ],
-  "read": false,
-  "readAt": null,
-  "createdAt": "..."
+  "createdAt": "2026-09-14T18:00:00Z",
+  "updatedAt": "2026-09-14T18:00:00Z"
 }
 ```
 
-`schemaVersion` se incluye desde el primer documento. Es un campo barato de agregar ahora y costoso de retrofitear una vez existan documentos reales en Mongo sin él; permite migraciones futuras sin ambigüedad sobre la forma del documento.
+A few deliberate modeling notes:
 
-El modelo real debe construirse gradualmente.
+- `schemaVersion` is included from the very first document. It's a cheap field to add now and an expensive one to retrofit once real documents already exist in Mongo without it; it enables unambiguous migrations later.
+- `read`/`readAt` live only on the **InApp** channel entry, not at the top level. Email and Push don't have a "read" state — only an in-app notification does — so keeping them at the top level stopped making sense once a notification can have multiple channels.
+- `updatedAt` sits alongside `createdAt` to track the last modification. It becomes relevant once channel statuses start changing atomically and you need to reason about staleness.
+- `channels[].type` must be unique within a single notification's `channels` array. Future MongoDB updates will target one specific channel using `arrayFilters` matched on `type` (e.g. `channels.$[elem]` where `elem.type == "Email"`); that only works if `type` is unique per notification, so it's stated explicitly here rather than left as an implicit assumption.
+- `createdAt`, `updatedAt`, `sentAt`, and `deliveredAt` are stored as real BSON dates, not strings. The JSON above uses ISO 8601 strings purely for illustration.
+- `Push` is the only channel that can have more than one recipient, so it's the only one with a nested `recipients` array — one entry per device token, each carrying its own `status`/`sentAt`/`deliveredAt`. Email and InApp stay flat, single-recipient channels.
+- The `Push` channel's own `status` is a rollup of `recipients[].status`, using best-effort semantics: `Sent` once **at least one** recipient succeeds (reaching one of the user's devices counts as delivered), `Failed` only once **every** recipient has failed, `Sending` while any recipient is still in flight, `Pending` before any attempt starts. This is a deliberate product choice, not the only valid one — an all-or-nothing rollup (`Failed` if *any* recipient fails) is equally defensible and would change retry behavior (section 13) and the idempotency key (section 16); best-effort was picked because a push notification exists to reach the user, not one specific device.
+- `recipients[].token` must be unique within a single Push channel entry, for the same reason `channels[].type` must be unique within `channels`: future updates will target one recipient via a nested `arrayFilters` match on `token`.
+The real model must be built up gradually.
 
 ---
 
-# 8. Fases del proyecto
+# 8. Project phases
 
-## Fase 1 — Fundamentos
+## Phase 1 — Foundations
 
-Objetivo: tener una API .NET funcionando con MongoDB.
+Goal: have a .NET API working with MongoDB.
 
-### Pasos
+### Steps
 
-1. Crear solution.
-2. Crear Web API.
-3. Configurar Docker Compose.
-4. Ejecutar MongoDB.
-5. Configurar MongoDB mediante Options.
-6. Crear MongoContext.
-7. Crear NotificationDocument.
-8. Crear primera colección.
-9. Crear endpoint básico.
-10. Guardar la primera Notification.
-11. Leerla desde MongoDB.
+1. Create solution.
+2. Create Web API.
+3. Configure Docker Compose.
+4. Run MongoDB.
+5. Configure MongoDB via Options.
+6. Create MongoContext.
+7. Create NotificationDocument.
+8. Create first collection.
+9. Create basic endpoint.
+10. Save the first Notification.
+11. Read it back from MongoDB.
 
-Al finalizar:
+At the end:
 
 ```text
 API
@@ -349,28 +375,28 @@ API
 MongoDB
 ```
 
-Debe funcionar sin RabbitMQ.
+Must work without RabbitMQ.
 
 ---
 
-# Fase 2 — Modelo de dominio
+# Phase 2 — Domain model
 
-Agregar progresivamente:
+Progressively add:
 
 - Notification.
 - NotificationChannel.
 - NotificationChannelStatus.
 - Content.
-- Reglas básicas.
-- Validaciones.
+- Basic rules.
+- Validation.
 
-No crear un modelo complejo de usuario.
+Do not create a complex user model.
 
 ---
 
-# Fase 3 — Vertical Slices
+# Phase 3 — Vertical Slices
 
-Crear las funcionalidades reales como slices:
+Create the real features as slices:
 
 ```text
 Features/
@@ -382,25 +408,25 @@ Features/
     └── MarkAllAsRead/
 ```
 
-Cada slice debe contener solamente lo que necesita.
+Each slice must contain only what it needs.
 
-> Nota: al construir `Create`, revisar la idempotencia a nivel de API descrita en la sección 16 (un cliente HTTP reintentando `POST /notifications` puede generar Notifications duplicadas; no resuelto todavía).
+> Note: when building `Create`, revisit the API-level idempotency question described in section 16 (an HTTP client retrying `POST /notifications` could create duplicate Notifications; not resolved yet).
 
 ---
 
-# Fase 4 — MongoDB + .NET
+# Phase 4 — MongoDB + .NET
 
-Objetivo: aprender MongoDB utilizando `MongoDB.Driver` desde .NET.
+Goal: learn MongoDB using `MongoDB.Driver` from .NET.
 
-IMPORTANTE:
+IMPORTANT:
 
-Esta guía NO debe convertirse en un curso de MongoDB shell.
+This guide must NOT turn into a MongoDB shell course.
 
-El aprendizaje de MongoDB puro/conceptual se realizará aparte.
+Pure/conceptual MongoDB learning happens separately.
 
-Aquí interesa principalmente cómo implementar correctamente desde .NET.
+The focus here is how to implement things correctly from .NET.
 
-Temas:
+Topics:
 
 - CRUD.
 - Projections.
@@ -413,32 +439,32 @@ Temas:
 - Cursor encoding/decoding.
 - Bulk operations.
 - TTL.
-- Transactions como concepto.
-- Optimización.
+- Transactions as a concept.
+- Optimization.
 
-No introducir Generic Repository.
+Do not introduce a Generic Repository.
 
-Usar `MongoDB.Driver` directamente donde sea apropiado.
+Use `MongoDB.Driver` directly where appropriate.
 
 ---
 
-# Fase 5 — Mensajería
+# Phase 5 — Messaging
 
-Esta fase debe reconstruirse cuidadosamente desde cero.
+This phase must be built carefully from scratch.
 
-NO comenzar directamente con retries, leases, DLQ, heartbeat, idempotencia y recovery.
+Do NOT start directly with retries, leases, DLQ, heartbeat, idempotency, and recovery.
 
-Primero construir el camino feliz.
+Build the happy path first.
 
-## Orden obligatorio
+## Mandatory order
 
-### 5.1 Arquitectura de mensajería
+### 5.1 Messaging architecture
 
-Definir responsabilidades.
+Define responsibilities.
 
 ### 5.2 RabbitMQ connection
 
-Conexión y lifecycle.
+Connection and lifecycle.
 
 ### 5.3 RabbitMQ topology
 
@@ -449,25 +475,25 @@ Conexión y lifecycle.
 
 ### 5.4 Publisher
 
-Publicar un evento sencillo.
+Publish a simple event.
 
-> ⚠️ Nota (Outbox, adelanto): desde este punto existe una ventana de inconsistencia entre el guardado en Mongo y la publicación en RabbitMQ — ver sección 17 (Outbox). El problema existe desde el primer Publisher, no solo al final de la fase. Se documenta aquí a propósito; su resolución se difiere deliberadamente hasta 5.14, para primero dominar el camino feliz antes de resolver la atomicidad.
+> ⚠️ Note (Outbox, preview): from this point on there is a window of inconsistency between saving to Mongo and publishing to RabbitMQ — see section 17 (Outbox). The problem exists from the very first Publisher, not only at the end of the phase. It's documented here on purpose; its resolution is deliberately deferred to 5.14, to master the happy path first before solving the atomicity problem.
 
 ### 5.5 Consumer
 
-Consumir y hacer ACK.
+Consume and ACK.
 
 ### 5.6 Contract
 
-Crear:
+Create:
 
 ```text
 NotificationCreatedMessage
 ```
 
-Inicialmente debe ser pequeño.
+It should be small initially.
 
-Por ejemplo:
+For example:
 
 ```json
 {
@@ -476,11 +502,11 @@ Por ejemplo:
 }
 ```
 
-No duplicar innecesariamente todo el NotificationDocument.
+Do not unnecessarily duplicate the entire NotificationDocument.
 
 ### 5.7 Notification processing
 
-Separar:
+Separate:
 
 ```text
 RabbitMQ Consumer
@@ -488,11 +514,11 @@ RabbitMQ Consumer
 Notification processing
 ```
 
-El consumer no debe contener lógica de negocio de canales.
+The consumer must not contain channel business logic.
 
 ### 5.8 Email
 
-Separar:
+Separate:
 
 ```text
 Email channel
@@ -502,11 +528,11 @@ IEmailSender
 ResendEmailSender
 ```
 
-El procesador de Email no debe conocer detalles internos de Resend.
+The Email processor must not know Resend's internal details.
 
 ### 5.9 Push
 
-Separar:
+Separate:
 
 ```text
 Push channel
@@ -516,18 +542,18 @@ IPushSender
 FirebasePushSender
 ```
 
-No acoplar NotificationConsumer directamente a Firebase.
+Do not couple NotificationConsumer directly to Firebase.
 
 ### 5.10 Error classification
 
-Distinguir:
+Distinguish:
 
 ```text
 Transient error
 Permanent error
 ```
 
-Ejemplos:
+Examples:
 
 ```text
 Timeout
@@ -547,13 +573,13 @@ Malformed request
 Permanent failure
 ```
 
-La clasificación específica del proveedor debe ocurrir en su adapter.
+Provider-specific classification must happen in its adapter.
 
-El sistema de mensajería debe recibir una señal genérica de fallo permanente/transitorio.
+The messaging system must receive a generic transient/permanent failure signal.
 
 ### 5.11 Retry
 
-Implementar:
+Implement:
 
 ```text
 retry.1
@@ -562,9 +588,9 @@ retry.3
 DLQ
 ```
 
-No usar `requeue: true` como mecanismo principal de retries controlados.
+Do not use `requeue: true` as the main mechanism for controlled retries.
 
-El flujo debe ser:
+The flow must be:
 
 ```text
 Publish to retry queue
@@ -572,7 +598,7 @@ Publish to retry queue
 ACK original message
 ```
 
-No:
+Not:
 
 ```text
 Nack/requeue
@@ -582,36 +608,36 @@ Publish retry
 
 ### 5.12 Idempotency
 
-Separar dos problemas:
+Separate two problems:
 
 #### Message idempotency
 
-Evitar procesar dos veces el mismo mensaje.
+Avoid processing the same message twice.
 
 #### External side-effect idempotency
 
-Evitar duplicar el efecto externo.
+Avoid duplicating the external effect.
 
-No asumir que porque el consumer es idempotente el proveedor externo también lo es.
+Do not assume that because the consumer is idempotent, the external provider is too.
 
-Para Resend se puede utilizar su mecanismo de idempotency key.
+For Resend, its idempotency key mechanism can be used.
 
-Para proveedores que no tengan el mismo mecanismo, estudiar una estrategia propia.
+For providers without an equivalent mechanism, study a strategy of your own.
 
 ### 5.13 Connection recovery
 
-Implementar recuperación de conexión/canal cuando corresponda.
+Implement connection/channel recovery where appropriate.
 
-Diferenciar:
+Distinguish:
 
-- retry técnico del publish;
-- retry de negocio del mensaje.
+- technical retry of the publish;
+- business retry of the message.
 
-No multiplicar retries innecesariamente.
+Do not multiply retries unnecessarily.
 
 ### 5.14 Outbox
 
-Finalmente implementar Outbox para resolver:
+Finally implement Outbox to resolve:
 
 ```text
 Mongo save
@@ -619,94 +645,94 @@ Mongo save
 RabbitMQ publish
 ```
 
-y el problema:
+and the problem:
 
 ```text
 Mongo save ✅
 RabbitMQ publish ❌
 ```
 
-El Outbox debe ser introducido cuando el flujo básico ya sea comprendido.
+Outbox should be introduced once the basic flow is already understood.
 
 ---
 
-# 9. Responsabilidades de las piezas de mensajería
+# 9. Responsibilities of the messaging pieces
 
-Una clase debe poder explicarse en una frase.
+A class must be explainable in one sentence.
 
 ## RabbitMqPublisher
 
-Responsabilidad:
+Responsibility:
 
-> Publicar mensajes en RabbitMQ.
+> Publish messages to RabbitMQ.
 
-No debe:
+Must not:
 
-- procesar notificaciones;
-- enviar emails;
-- decidir reglas de negocio;
-- manejar estados de Notification.
+- process notifications;
+- send emails;
+- decide business rules;
+- manage Notification state.
 
 ---
 
 ## RabbitMqConsumerWorker
 
-Responsabilidad:
+Responsibility:
 
-> Mantener un consumer de RabbitMQ ejecutándose como BackgroundService.
+> Keep a RabbitMQ consumer running as a BackgroundService.
 
-No debe:
+Must not:
 
-- enviar emails directamente;
-- conocer Resend;
-- conocer Firebase;
-- contener reglas de negocio de Notification.
+- send emails directly;
+- know about Resend;
+- know about Firebase;
+- contain Notification business rules.
 
 ---
 
 ## NotificationConsumer
 
-Responsabilidad:
+Responsibility:
 
-> Recibir el evento y coordinar el procesamiento de la Notification.
+> Receive the event and coordinate Notification processing.
 
-No debe contener detalles específicos de proveedores.
+Must not contain provider-specific details.
 
 ---
 
 ## Channel processors
 
-Ejemplo:
+Example:
 
 ```text
 EmailNotificationProcessor
 PushNotificationProcessor
 ```
 
-Responsabilidad:
+Responsibility:
 
-> Procesar un canal específico.
+> Process one specific channel.
 
 ---
 
 ## Provider adapters
 
-Ejemplos:
+Examples:
 
 ```text
 ResendEmailSender
 FirebasePushSender
 ```
 
-Responsabilidad:
+Responsibility:
 
-> Traducir nuestra abstracción interna al API del proveedor externo.
+> Translate our internal abstraction into the external provider's API.
 
 ---
 
 # 10. Email
 
-La abstracción:
+The abstraction:
 
 ```csharp
 public interface IEmailSender
@@ -720,7 +746,7 @@ public interface IEmailSender
 }
 ```
 
-Proveedor:
+Provider:
 
 ```text
 IEmailSender
@@ -730,29 +756,29 @@ ResendEmailSender
 Resend API
 ```
 
-Configuración sensible:
+Sensitive configuration:
 
 ```text
 Email:ApiKey
 ```
 
-debe estar en User Secrets durante desarrollo y en un secret manager apropiado en producción.
+must be in User Secrets during development and an appropriate secret manager in production.
 
-No guardar API keys en Git.
+Do not store real API keys in Git.
 
-Para pruebas se puede utilizar:
+For testing, this can be used:
 
 ```text
 onboarding@resend.dev
 ```
 
-hasta que sea necesario configurar un dominio propio.
+until a custom domain needs to be configured.
 
 ---
 
 # 11. Push
 
-La abstracción:
+The abstraction:
 
 ```csharp
 public interface IPushSender
@@ -766,7 +792,7 @@ public interface IPushSender
 }
 ```
 
-Proveedor:
+Provider:
 
 ```text
 IPushSender
@@ -778,21 +804,21 @@ FCM
 Device
 ```
 
-No crear todavía un sistema completo de usuarios/dispositivos.
+Do not create a full user/device system yet.
 
-Inicialmente:
+Initially:
 
 ```text
-PushRecipient = FCM registration token
+pushRecipients = [FCM registration token, ...]
 ```
 
-es suficiente para aprender el flujo.
+is enough to learn the flow.
 
 ---
 
-# 12. Estados de canales
+# 12. Channel statuses
 
-Inicialmente:
+Initially:
 
 ```text
 Pending
@@ -801,7 +827,7 @@ Sent
 Failed
 ```
 
-Flujo normal:
+Normal flow:
 
 ```text
 Pending
@@ -821,35 +847,39 @@ Sending
 Failed
 ```
 
-Los estados deben actualizarse en Mongo de forma atómica cuando sea necesario.
+Statuses must be updated in Mongo atomically when needed.
+
+This same state machine applies at two levels for `Push`: once per `recipients[]` entry (one device token), and once as the channel-level rollup described in section 7 (best-effort — `Sent` once any recipient succeeds).
 
 ---
 
-# 13. Retry por canal
+# 13. Retry per channel
 
-Una Notification puede tener:
+A Notification can have:
 
 ```text
 Email → Sent
 Push  → Failed
 ```
 
-Cuando se reintente el mensaje:
+When the message is retried:
 
 ```text
 Email → skip
 Push  → retry
 ```
 
-Nunca volver a enviar un canal que ya está correctamente `Sent`.
+Never resend a channel that is already correctly `Sent`.
 
-La unidad de retry de RabbitMQ puede ser el mensaje de Notification, mientras que el estado de cada canal determina qué trabajo sigue pendiente.
+For `Push`, "retry" happens at the recipient level, not the whole channel: only the `recipients[]` entries still in `Failed` or `Pending` are retried; any entry already `Sent` is skipped, same rule as any other channel — just applied per token instead of per channel.
+
+The RabbitMQ retry unit can be the Notification message, while each channel's (and, for Push, each recipient's) status determines what work is still pending.
 
 ---
 
 # 14. Publisher confirms
 
-Los publisher confirms protegen principalmente la publicación:
+Publisher confirms mainly protect the publication:
 
 ```text
 Publisher
@@ -859,7 +889,7 @@ RabbitMQ
 Confirm
 ```
 
-No confundir con consumer ACK:
+Do not confuse this with consumer ACK:
 
 ```text
 RabbitMQ
@@ -869,35 +899,35 @@ Consumer
 ACK
 ```
 
-Son mecanismos diferentes.
+They are different mechanisms.
 
 Publisher confirm:
 
-> El broker confirmó la publicación.
+> The broker confirmed the publication.
 
 Consumer ACK:
 
-> El consumer confirmó el procesamiento del delivery.
+> The consumer confirmed delivery processing.
 
 ---
 
 # 15. Connection lifecycle
 
-No crear una conexión RabbitMQ nueva para cada mensaje.
+Do not create a new RabbitMQ connection per message.
 
-Preferir conexiones/canales de larga duración apropiados al lifecycle de la aplicación.
+Prefer long-lived connections/channels appropriate to the application's lifecycle.
 
-El publisher debe poder detectar una conexión inválida y reconstruirla.
+The publisher must be able to detect an invalid connection and rebuild it.
 
-No convertir esto en un framework genérico de connection pooling salvo que el problema real lo justifique.
+Do not turn this into a generic connection-pooling framework unless a real problem justifies it.
 
 ---
 
 # 16. Idempotency
 
-Crear idempotencia solamente cuando exista un flujo que realmente pueda duplicarse.
+Only build idempotency when a flow that can genuinely be duplicated actually exists.
 
-Para mensajes:
+For messages:
 
 ```text
 MessageId
@@ -905,51 +935,55 @@ MessageId
 ProcessedMessage
 ```
 
-Para efectos externos:
+For external effects:
 
 ```text
 NotificationId + Channel
 ```
 
-puede servir como clave lógica.
+can serve as a logical key — except for `Push`, where a channel can address multiple recipients, so the key must go one level deeper:
 
-Pero una clave local no garantiza que un proveedor externo haya sido idempotente.
+```text
+NotificationId + Channel + RecipientToken
+```
 
-Caso crítico:
+But a local key does not guarantee an external provider was idempotent.
+
+Critical case:
 
 ```text
 Provider
    ↓
-Email enviado ✅
+Email sent ✅
    ↓
 NotifyHub crash 💥
    ↓
-Mongo no actualizó Sent
+Mongo did not update to Sent
 ```
 
-Al retry:
+On retry:
 
 ```text
 Provider
    ↓
-¿Enviar nuevamente?
+Send again?
 ```
 
-Este problema debe explicarse antes de intentar resolverlo.
+This problem must be explained before trying to solve it.
 
-### Idempotencia a nivel de API (pendiente)
+### API-level idempotency (pending)
 
-Lo anterior cubre idempotencia de mensajes y de efectos externos hacia proveedores. Un problema relacionado pero distinto es un **cliente HTTP reintentando `POST /notifications`** (por ejemplo, tras un timeout de red), lo cual podría crear Notifications duplicadas antes de que exista cualquier mensaje en RabbitMQ.
+The above covers message idempotency and external-effect idempotency toward providers. A related but distinct problem is an **HTTP client retrying `POST /notifications`** (for example, after a network timeout), which could create duplicate Notifications before any message even reaches RabbitMQ.
 
-Este caso no se resuelve todavía. Se revisitará al construir el slice `Create` (Fase 3), donde se decidirá si se requiere una idempotency key provista por el cliente o alguna otra estrategia.
+This case is not solved yet. It will be revisited when building the `Create` slice (Phase 3), where whether a client-provided idempotency key or some other strategy is needed will be decided.
 
 ---
 
 # 17. Outbox
 
-El Outbox es una de las piezas importantes de NotifyHub.
+Outbox is one of the important pieces of NotifyHub.
 
-Problema:
+Problem:
 
 ```text
 Mongo insert
@@ -961,9 +995,9 @@ RabbitMQ publish
      ❌ crash
 ```
 
-La Notification existe pero RabbitMQ nunca recibió el evento.
+The Notification exists but RabbitMQ never received the event.
 
-Solución conceptual:
+Conceptual solution:
 
 ```text
 MongoDB
@@ -977,15 +1011,15 @@ MongoDB
       RabbitMQ
 ```
 
-El Outbox se procesa de forma asíncrona.
+Outbox is processed asynchronously.
 
-No implementarlo antes de entender el flujo básico.
+Do not implement it before understanding the basic flow.
 
 ---
 
 # 18. Redis
 
-Agregar Redis solamente después de dominar:
+Only add Redis after mastering:
 
 - MongoDB.
 - RabbitMQ.
@@ -993,86 +1027,86 @@ Agregar Redis solamente después de dominar:
 - idempotency.
 - outbox.
 
-Posibles usos:
+Possible uses:
 
 - caching;
 - rate limiting;
 - deduplication;
-- preferencias;
+- preferences;
 - throttling.
 
-No introducir Redis simplemente porque es una tecnología popular.
+Do not introduce Redis simply because it's a popular technology.
 
 ---
 
 # 19. Testing
 
-El proyecto debe terminar teniendo diferentes niveles de pruebas.
+The project must end up with different levels of tests.
 
 ## Unit tests
 
-Para:
+For:
 
-- reglas;
+- rules;
 - retry policy;
-- clasificación de errores;
-- encoding/decoding de cursors;
-- componentes deterministas.
+- error classification;
+- cursor encoding/decoding;
+- deterministic components.
 
 ## Integration tests
 
-Para:
+For:
 
 - MongoDB;
 - RabbitMQ;
-- procesamiento real de mensajes;
+- real message processing;
 - Outbox.
 
-Utilizar Testcontainers cuando tenga sentido.
+Use Testcontainers where it makes sense.
 
 ## API tests
 
-Probar endpoints completos.
+Test complete endpoints.
 
 ---
 
-# 20. Observabilidad
+# 20. Observability
 
-Después de que el sistema funcione:
+Once the system works:
 
 ## Logging
 
-Usar `ILogger`.
+Use `ILogger`.
 
-Logs estructurados.
+Structured logs.
 
-No loggear:
+Do not log:
 
 - API keys;
 - passwords;
-- tokens sensibles;
-- contenido sensible innecesario.
+- sensitive tokens;
+- unnecessary sensitive content.
 
 ## Health checks
 
-Agregar checks para:
+Add checks for:
 
 ```text
 MongoDB
 RabbitMQ
 ```
 
-y posteriormente proveedores cuando corresponda.
+and later providers when appropriate.
 
 ## OpenTelemetry
 
-Agregar:
+Add:
 
 - traces;
 - metrics;
 - correlation/trace context.
 
-Especialmente interesante para:
+Especially interesting for:
 
 ```text
 HTTP
@@ -1088,9 +1122,9 @@ Provider
 
 ---
 
-# 21. Docker Compose inicial
+# 21. Initial Docker Compose
 
-El entorno local debe comenzar simple.
+The local environment must start simple.
 
 ```yaml
 services:
@@ -1115,13 +1149,13 @@ volumes:
   mongodb_data:
 ```
 
-No agregar Redis, Kafka, Kubernetes, etc. desde el comienzo.
+Do not add Redis, Kafka, Kubernetes, etc. from the start.
 
 ---
 
-# 22. Configuración
+# 22. Configuration
 
-Ejemplo:
+Example:
 
 ```json
 {
@@ -1136,7 +1170,7 @@ Ejemplo:
 }
 ```
 
-Los secretos deben utilizar User Secrets:
+Secrets must use User Secrets:
 
 ```text
 RabbitMq:UserName
@@ -1147,39 +1181,39 @@ Firebase:ClientEmail
 Firebase:PrivateKey
 ```
 
-No almacenar secretos reales en `appsettings.json`.
+Do not store real secrets in `appsettings.json`.
 
 ---
 
-# 23. Roadmap completo
+# 23. Full roadmap
 
 ```text
-FASE 1 — FUNDAMENTOS
-⬜ Crear solución
+PHASE 1 — FOUNDATIONS
+⬜ Create solution
 ⬜ ASP.NET Core API
 ⬜ Docker Compose
 ⬜ MongoDB
 ⬜ Configuration
 ⬜ MongoContext
 ⬜ First document
-⬜ CRUD básico
+⬜ Basic CRUD
 
-FASE 2 — DOMINIO
+PHASE 2 — DOMAIN
 ⬜ Notification
 ⬜ Content
 ⬜ Channels
 ⬜ Status
-⬜ Reglas
-⬜ Validación
+⬜ Rules
+⬜ Validation
 
-FASE 3 — VERTICAL SLICES
+PHASE 3 — VERTICAL SLICES
 ⬜ Create
 ⬜ GetById
 ⬜ List
 ⬜ MarkAsRead
 ⬜ MarkAllAsRead
 
-FASE 4 — MONGODB + .NET
+PHASE 4 — MONGODB + .NET
 ⬜ Projections
 ⬜ UpdateOne
 ⬜ UpdateMany
@@ -1192,7 +1226,7 @@ FASE 4 — MONGODB + .NET
 ⬜ Transactions
 ⬜ Optimization
 
-FASE 5 — MESSAGING
+PHASE 5 — MESSAGING
 ⬜ RabbitMQ connection
 ⬜ Topology
 ⬜ Publisher
@@ -1210,13 +1244,13 @@ FASE 5 — MESSAGING
 ⬜ Connection recovery
 ⬜ Outbox
 
-FASE 6 — REDIS
+PHASE 6 — REDIS
 ⬜ Cache
 ⬜ Rate limiting
 ⬜ Deduplication
 ⬜ Other justified use cases
 
-FASE 7 — RELIABILITY
+PHASE 7 — RELIABILITY
 ⬜ Failure scenarios
 ⬜ Retry strategy
 ⬜ Idempotency
@@ -1225,21 +1259,21 @@ FASE 7 — RELIABILITY
 ⬜ Concurrency
 ⬜ Recovery
 
-FASE 8 — TESTING
+PHASE 8 — TESTING
 ⬜ Unit tests
 ⬜ Integration tests
 ⬜ Testcontainers
 ⬜ API tests
 ⬜ Consumer tests
 
-FASE 9 — OBSERVABILITY
+PHASE 9 — OBSERVABILITY
 ⬜ Structured logging
 ⬜ Health checks
 ⬜ OpenTelemetry
 ⬜ Tracing
 ⬜ Metrics
 
-FASE 10 — PORTFOLIO
+PHASE 10 — PORTFOLIO
 ⬜ Docker Compose
 ⬜ README
 ⬜ Architecture diagram
@@ -1249,105 +1283,107 @@ FASE 10 — PORTFOLIO
 ⬜ CI/CD
 ```
 
+A machine-readable checklist tracking real progress is kept at [`docs/roadmap.md`](roadmap.md) and is shown after every response while this project is active.
+
 ---
 
-# 24. Cómo debe enseñar el asistente
+# 24. How the assistant must teach
 
-Cuando el usuario diga:
+When the user says:
 
-> Siguiente
+> Next
 
-continuar exactamente desde el siguiente punto pendiente del roadmap.
+continue exactly from the next pending point in the roadmap.
 
-No repetir todo el curso.
+Do not repeat the whole course.
 
-Cada lección debe tener esta estructura:
+Each lesson must have this structure:
 
 ```text
-# Lección X — Nombre
+# Lesson X — Name
 
-## Objetivo
+## Goal
 
-Qué aprenderemos.
+What we'll learn.
 
-## Problema
+## Problem
 
-Qué problema estamos resolviendo.
+What problem we're solving.
 
-## Decisión
+## Decision
 
-Por qué elegimos esta solución.
+Why we chose this solution.
 
-## Arquitectura
+## Architecture
 
-Diagrama sencillo.
+Simple diagram.
 
-## Implementación
+## Implementation
 
-### 🛠️ IMPLEMENTAR
+### 🛠️ IMPLEMENT
 
-Código real.
+Real code.
 
-## Ejemplo
+## Example
 
-### 💡 EJEMPLO
+### 💡 EXAMPLE
 
-Solo si ayuda a comprender.
+Only if it helps understanding.
 
-## Verificación
+## Verification
 
-Cómo comprobar que funciona.
+How to check it works.
 
-## Errores comunes
+## Common mistakes
 
-Solo los relevantes.
+Only the relevant ones.
 
-## Estado
+## Status
 
-Qué está completado.
+What's completed.
 
-## Qué queda
+## What's left
 
-Lista corta de próximos pasos.
+Short list of next steps.
 ```
 
 ---
 
-# 25. Regla para preguntas durante una lección
+# 25. Rule for questions during a lesson
 
-Si el usuario pregunta:
+If the user asks:
 
-> ¿Por qué hacemos esto?
+> Why are we doing this?
 
-Responder la duda antes de continuar.
+Answer the question before continuing.
 
-No avanzar automáticamente.
+Do not advance automatically.
 
-Si el usuario pregunta:
+If the user asks:
 
-> ¿Dónde llamamos este método?
+> Where do we call this method?
 
-Mostrar exactamente el punto de llamada y explicar el flujo.
+Show exactly the call site and explain the flow.
 
-Si el usuario detecta una inconsistencia arquitectónica:
+If the user detects an architectural inconsistency:
 
-1. Reconocerla.
-2. Explicar el problema.
-3. Corregir el diseño.
-4. Actualizar el código necesario.
-5. Continuar desde el nuevo diseño.
+1. Acknowledge it.
+2. Explain the problem.
+3. Correct the design.
+4. Update the necessary code.
+5. Continue from the new design.
 
-No defender una solución simplemente porque fue propuesta anteriormente.
+Do not defend a solution simply because it was proposed earlier.
 
 ---
 
-# 26. Objetivo final
+# 26. Final goal
 
-El resultado no debe ser solamente:
+The result must not be just:
 
-> "Una API que envía notificaciones."
+> "An API that sends notifications."
 
-Debe demostrar que el desarrollador entiende:
+It must demonstrate that the developer understands:
 
 ```text
 .NET
@@ -1369,49 +1405,60 @@ Testing
 Observability
 ```
 
-Pero cada concepto debe introducirse **cuando el proyecto tiene una necesidad real de utilizarlo**.
+But each concept must be introduced **when the project has a real need to use it**.
 
-La prioridad es:
+The priority is:
 
 ```text
-Entendible
+Understandable
     ↓
-Correcto
+Correct
     ↓
-Testeable
+Testable
     ↓
-Resiliente
+Resilient
     ↓
-Escalable
+Scalable
 ```
 
-No:
+Not:
 
 ```text
-Complejo
+Complex
     ↓
-Difícil de entender
+Hard to understand
     ↓
-Intentar justificar la complejidad
+Try to justify the complexity
 ```
 
 ---
 
-# 27. Regla final
+# 27. Final rule
 
-Construir NotifyHub **desde cero**, sin asumir código existente.
+Build NotifyHub **from scratch**, without assuming existing code.
 
-Cuando se utilice esta guía en un nuevo chat o con Copilot:
+When this guide is used in a new chat or with Copilot:
 
-1. Leer este archivo completo como contexto.
-2. Identificar el primer punto pendiente.
-3. No asumir que existen archivos que todavía no se han creado.
-4. Dar rutas exactas para cada archivo.
-5. Marcar cada código como 🛠️ IMPLEMENTAR o 💡 EJEMPLO.
-6. Implementar únicamente la lección actual.
-7. Verificar antes de continuar.
-8. Mantener Vertical Slice.
-9. Evitar sobreingeniería.
-10. Mantener una lista corta de lo que queda.
+1. Read this entire file as context.
+2. Identify the first pending point.
+3. Do not assume files exist that have not been created yet.
+4. Give exact paths for each file.
+5. Mark all code as 🛠️ IMPLEMENT or 💡 EXAMPLE.
+6. Implement only the current lesson.
+7. Verify before continuing.
+8. Keep Vertical Slice.
+9. Avoid over-engineering.
+10. Keep a short list of what's left.
 
-El proyecto debe construirse como un proceso de aprendizaje guiado, no como un dump de código.
+The project must be built as a guided learning process, not a code dump.
+
+---
+
+# 28. Version control workflow
+
+`main` is protected: no direct commits or pushes to it. All changes go through a branch and a pull request, even for a solo contributor.
+
+- Branch naming: `feature/<slice-name>`, `fix/<bug>`, `chore/<task>` (e.g. `feature/create-notification-slice`).
+- One lesson/phase-step per branch and PR where practical, matching the incremental-construction rule in section 2.1.
+- Open a PR into `main`, review the diff yourself, then merge. Squash or regular merge is fine; force-pushing shared branches is not.
+- `main` protection currently requires a pull request before merging (owner can override in an emergency via GitHub's admin bypass); no direct pushes are expected as part of the normal workflow.

@@ -1,0 +1,8 @@
+# AI SDLC Factory — regenerable tooling state, not part of the project
+docs/superpowers/
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
