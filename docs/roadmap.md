@@ -24,10 +24,10 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 2 — Domain
 
-- [ ] Notification
-- [ ] Content
-- [ ] Channels
-- [ ] Status
+- [x] Notification (UserId, Content, Channels, UpdatedAt added)
+- [x] Content
+- [x] Channels
+- [x] Status
 - [ ] Rules
 - [ ] Validation
 
