@@ -51,7 +51,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Cursor pagination (List's keyset cursor, CreatedAt+Id tie-break)
 - [ ] Bulk operations — real need arrives with Phase 5's batch message/channel processing
 - [ ] TTL — real need arrives with Phase 5's processed_messages idempotency table
-- [ ] Transactions — real need arrives with Phase 5's Outbox (Mongo save + RabbitMQ publish)
+- [x] Transactions (Create's Notification + OutboxMessage insert, single-node replica set)
 - [ ] Optimization — ongoing activity, not a single deliverable; revisited once there's real load/query data to look at
 
 ## Phase 5 — Messaging
@@ -61,7 +61,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Topology (notifications.exchange direct → notifications.queue, routing key notification.created)
 - [x] Publisher (RabbitMqPublisher, publisher confirms enabled, verified standalone)
 - [x] Contract (NotificationCreatedMessage)
-- [ ] Outbox — not yet wired into Create; Create never goes through a naive direct-publish state
+- [x] Outbox (transactional Create + OutboxProcessor background service, verified end-to-end including the rollback path)
 - [ ] Consumer
 - [ ] Notification processing
 - [ ] Email (Resend)

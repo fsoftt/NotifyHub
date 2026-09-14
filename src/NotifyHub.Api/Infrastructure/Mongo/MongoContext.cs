@@ -8,9 +8,11 @@ public class MongoContext
     public MongoContext(IOptions<MongoDbOptions> options)
     {
         var mongoDbOptions = options.Value;
-        var mongoClient = new MongoClient(mongoDbOptions.ConnectionString);
-        Database = mongoClient.GetDatabase(mongoDbOptions.DatabaseName);
+        Client = new MongoClient(mongoDbOptions.ConnectionString);
+        Database = Client.GetDatabase(mongoDbOptions.DatabaseName);
     }
+
+    public IMongoClient Client { get; }
 
     public IMongoDatabase Database { get; }
 }
