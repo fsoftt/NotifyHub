@@ -56,8 +56,9 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 5 — Messaging
 
-- [ ] RabbitMQ connection
-- [ ] Topology
+- [x] Messaging architecture (5.1 — responsibilities already defined in guide section 9, applied as-is)
+- [x] RabbitMQ connection
+- [x] Topology (notifications.exchange direct → notifications.queue, routing key notification.created)
 - [ ] Publisher
 - [ ] Contract
 - [ ] Outbox — moved up from last; see section 5.6 in the guide for why
