@@ -35,7 +35,7 @@ public static class Endpoint
         });
     }
 
-    private static NotificationChannel BuildChannel(NotificationChannelType channelType, List<string>? pushRecipients)
+    internal static NotificationChannel BuildChannel(NotificationChannelType channelType, List<string>? pushRecipients)
     {
         var channel = new NotificationChannel
         {
