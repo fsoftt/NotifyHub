@@ -36,9 +36,9 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 - [x] Create (done early — Phase 1, `Features/Notifications/Create/`)
 - [x] GetById (done early — Phase 1, `Features/Notifications/GetById/`)
-- [ ] List
-- [ ] MarkAsRead
-- [ ] MarkAllAsRead
+- [x] List (email filter + simple limit, not cursor pagination — that's Phase 4)
+- [x] MarkAsRead
+- [x] MarkAllAsRead
 
 ## Phase 4 — MongoDB + .NET
 
