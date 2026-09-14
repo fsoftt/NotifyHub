@@ -59,9 +59,9 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Messaging architecture (5.1 — responsibilities already defined in guide section 9, applied as-is)
 - [x] RabbitMQ connection
 - [x] Topology (notifications.exchange direct → notifications.queue, routing key notification.created)
-- [ ] Publisher
-- [ ] Contract
-- [ ] Outbox — moved up from last; see section 5.6 in the guide for why
+- [x] Publisher (RabbitMqPublisher, publisher confirms enabled, verified standalone)
+- [x] Contract (NotificationCreatedMessage)
+- [ ] Outbox — not yet wired into Create; Create never goes through a naive direct-publish state
 - [ ] Consumer
 - [ ] Notification processing
 - [ ] Email (Resend)
