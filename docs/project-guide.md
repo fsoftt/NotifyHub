@@ -289,7 +289,6 @@ Conceptually:
   "schemaVersion": 1,
   "userId": null,
   "email": "recipient@example.com",
-  "pushRecipients": ["device-token-1", "device-token-2"],
   "type": "ScoreAssigned",
   "content": {
     "title": "New score",
@@ -305,8 +304,20 @@ Conceptually:
     {
       "type": "Push",
       "status": "Pending",
-      "sentAt": null,
-      "deliveredAt": null
+      "recipients": [
+        {
+          "token": "device-token-1",
+          "status": "Pending",
+          "sentAt": null,
+          "deliveredAt": null
+        },
+        {
+          "token": "device-token-2",
+          "status": "Pending",
+          "sentAt": null,
+          "deliveredAt": null
+        }
+      ]
     },
     {
       "type": "InApp",
@@ -329,7 +340,9 @@ A few deliberate modeling notes:
 - `updatedAt` sits alongside `createdAt` to track the last modification. It becomes relevant once channel statuses start changing atomically and you need to reason about staleness.
 - `channels[].type` must be unique within a single notification's `channels` array. Future MongoDB updates will target one specific channel using `arrayFilters` matched on `type` (e.g. `channels.$[elem]` where `elem.type == "Email"`); that only works if `type` is unique per notification, so it's stated explicitly here rather than left as an implicit assumption.
 - `createdAt`, `updatedAt`, `sentAt`, and `deliveredAt` are stored as real BSON dates, not strings. The JSON above uses ISO 8601 strings purely for illustration.
-- `pushRecipients` is an array, not a single token, since one recipient can realistically have more than one device (phone, tablet, a reinstalled app producing a new token). This is a deliberately partial fix: the `Push` channel entry still has a single `status`, so sending to multiple tokens is treated as one logical push action — per-token delivery results (one token fails, another succeeds) cannot be represented yet. That would require one channel entry per token, which is not being built now because there's no real need for it yet.
+- `Push` is the only channel that can have more than one recipient, so it's the only one with a nested `recipients` array — one entry per device token, each carrying its own `status`/`sentAt`/`deliveredAt`. Email and InApp stay flat, single-recipient channels.
+- The `Push` channel's own `status` is a rollup of `recipients[].status`, using best-effort semantics: `Sent` once **at least one** recipient succeeds (reaching one of the user's devices counts as delivered), `Failed` only once **every** recipient has failed, `Sending` while any recipient is still in flight, `Pending` before any attempt starts. This is a deliberate product choice, not the only valid one — an all-or-nothing rollup (`Failed` if *any* recipient fails) is equally defensible and would change retry behavior (section 13) and the idempotency key (section 16); best-effort was picked because a push notification exists to reach the user, not one specific device.
+- `recipients[].token` must be unique within a single Push channel entry, for the same reason `channels[].type` must be unique within `channels`: future updates will target one recipient via a nested `arrayFilters` match on `token`.
 The real model must be built up gradually.
 
 ---
@@ -836,6 +849,8 @@ Failed
 
 Statuses must be updated in Mongo atomically when needed.
 
+This same state machine applies at two levels for `Push`: once per `recipients[]` entry (one device token), and once as the channel-level rollup described in section 7 (best-effort — `Sent` once any recipient succeeds).
+
 ---
 
 # 13. Retry per channel
@@ -856,7 +871,9 @@ Push  → retry
 
 Never resend a channel that is already correctly `Sent`.
 
-The RabbitMQ retry unit can be the Notification message, while each channel's status determines what work is still pending.
+For `Push`, "retry" happens at the recipient level, not the whole channel: only the `recipients[]` entries still in `Failed` or `Pending` are retried; any entry already `Sent` is skipped, same rule as any other channel — just applied per token instead of per channel.
+
+The RabbitMQ retry unit can be the Notification message, while each channel's (and, for Push, each recipient's) status determines what work is still pending.
 
 ---
 
@@ -924,7 +941,11 @@ For external effects:
 NotificationId + Channel
 ```
 
-can serve as a logical key.
+can serve as a logical key — except for `Push`, where a channel can address multiple recipients, so the key must go one level deeper:
+
+```text
+NotificationId + Channel + RecipientToken
+```
 
 But a local key does not guarantee an external provider was idempotent.
 
