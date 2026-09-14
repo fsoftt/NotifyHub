@@ -289,7 +289,7 @@ Conceptually:
   "schemaVersion": 1,
   "userId": null,
   "email": "recipient@example.com",
-  "pushRecipient": "device-token",
+  "pushRecipients": ["device-token-1", "device-token-2"],
   "type": "ScoreAssigned",
   "content": {
     "title": "New score",
@@ -329,7 +329,7 @@ A few deliberate modeling notes:
 - `updatedAt` sits alongside `createdAt` to track the last modification. It becomes relevant once channel statuses start changing atomically and you need to reason about staleness.
 - `channels[].type` must be unique within a single notification's `channels` array. Future MongoDB updates will target one specific channel using `arrayFilters` matched on `type` (e.g. `channels.$[elem]` where `elem.type == "Email"`); that only works if `type` is unique per notification, so it's stated explicitly here rather than left as an implicit assumption.
 - `createdAt`, `updatedAt`, `sentAt`, and `deliveredAt` are stored as real BSON dates, not strings. The JSON above uses ISO 8601 strings purely for illustration.
-
+- `pushRecipients` is an array, not a single token, since one recipient can realistically have more than one device (phone, tablet, a reinstalled app producing a new token). This is a deliberately partial fix: the `Push` channel entry still has a single `status`, so sending to multiple tokens is treated as one logical push action — per-token delivery results (one token fails, another succeeds) cannot be represented yet. That would require one channel entry per token, which is not being built now because there's no real need for it yet.
 The real model must be built up gradually.
 
 ---
@@ -796,7 +796,7 @@ Do not create a full user/device system yet.
 Initially:
 
 ```text
-PushRecipient = FCM registration token
+pushRecipients = [FCM registration token, ...]
 ```
 
 is enough to learn the flow.
