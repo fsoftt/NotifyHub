@@ -12,6 +12,12 @@ The goal isn't to use many technologies — it's to understand why each piece ex
 
 The full build guide — rules, architecture decisions, phased roadmap — lives at [`docs/project-guide.md`](docs/project-guide.md).
 
+Real progress is tracked in [`docs/roadmap.md`](docs/roadmap.md).
+
+## Workflow
+
+`main` is protected. All changes land via a branch + pull request — see section 28 of the project guide.
+
 ## Stack (planned)
 
 - .NET / ASP.NET Core Web API, MongoDB, RabbitMQ
