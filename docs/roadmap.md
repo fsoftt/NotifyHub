@@ -9,7 +9,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Project guide committed (`docs/project-guide.md`, English)
 - [x] `.editorconfig` enforcing no-underscore private fields
 - [x] Branch protection on `main` (PRs required)
-- [ ] `.gitignore` (add once `dotnet new` generates build output)
+- [x] `.gitignore` (.NET build output)
 
 ## Phase 1 — Foundations
 
