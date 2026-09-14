@@ -21,6 +21,9 @@ var rabbitMqOptions = builder.Configuration.GetSection(RabbitMqOptions.SectionNa
 var rabbitMqConnection = await RabbitMqConnection.CreateAsync(rabbitMqOptions);
 builder.Services.AddSingleton(rabbitMqConnection);
 
+var rabbitMqPublisher = await RabbitMqPublisher.CreateAsync(rabbitMqConnection);
+builder.Services.AddSingleton(rabbitMqPublisher);
+
 var app = builder.Build();
 
 await NotificationIndexes.EnsureCreatedAsync(app.Services.GetRequiredService<MongoContext>().Database);

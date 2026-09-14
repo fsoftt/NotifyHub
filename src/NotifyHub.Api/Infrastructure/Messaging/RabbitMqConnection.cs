@@ -30,8 +30,10 @@ public sealed class RabbitMqConnection : IAsyncDisposable
         return new RabbitMqConnection(connection);
     }
 
-    public Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default) =>
-        connection.CreateChannelAsync(cancellationToken: cancellationToken);
+    public Task<IChannel> CreateChannelAsync(
+        CreateChannelOptions? options = null,
+        CancellationToken cancellationToken = default) =>
+        connection.CreateChannelAsync(options, cancellationToken);
 
     public ValueTask DisposeAsync() => connection.DisposeAsync();
 }
