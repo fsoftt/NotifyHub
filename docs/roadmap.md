@@ -19,7 +19,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] MongoDB
 - [x] Configuration
 - [x] MongoContext
-- [ ] First document
+- [x] First document
 - [ ] Basic CRUD
 
 ## Phase 2 — Domain
