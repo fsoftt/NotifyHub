@@ -20,7 +20,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Configuration
 - [x] MongoContext
 - [x] First document
-- [ ] Basic CRUD
+- [x] Basic CRUD
 
 ## Phase 2 — Domain
 
@@ -33,8 +33,8 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 
 ## Phase 3 — Vertical Slices
 
-- [ ] Create
-- [ ] GetById
+- [x] Create (done early — Phase 1, `Features/Notifications/Create/`)
+- [x] GetById (done early — Phase 1, `Features/Notifications/GetById/`)
 - [ ] List
 - [ ] MarkAsRead
 - [ ] MarkAllAsRead
