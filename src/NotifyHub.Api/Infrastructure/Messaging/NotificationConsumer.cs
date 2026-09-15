@@ -1,23 +1,26 @@
-using MongoDB.Bson;
 using MongoDB.Driver;
+using NotifyHub.Api.Infrastructure.Email;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Notifications;
 
 namespace NotifyHub.Api.Infrastructure.Messaging;
 
 // Responsibility (section 9): receive the event and coordinate Notification
-// processing. Must not contain provider-specific details - IEmailSender/
-// IPushSender and their adapters are 5.9/5.10, not built yet. What this class
-// can legitimately do without them: find which channels still need work, and
-// mark that work as started (Pending -> Sending).
+// processing - route each Pending channel to what handles it, without
+// knowing provider details itself.
 public class NotificationConsumer
 {
     private readonly MongoContext mongoContext;
+    private readonly EmailNotificationProcessor emailProcessor;
     private readonly ILogger<NotificationConsumer> logger;
 
-    public NotificationConsumer(MongoContext mongoContext, ILogger<NotificationConsumer> logger)
+    public NotificationConsumer(
+        MongoContext mongoContext,
+        EmailNotificationProcessor emailProcessor,
+        ILogger<NotificationConsumer> logger)
     {
         this.mongoContext = mongoContext;
+        this.emailProcessor = emailProcessor;
         this.logger = logger;
     }
 
@@ -53,29 +56,38 @@ public class NotificationConsumer
 
         foreach (var channelType in pendingChannelTypes)
         {
-            var update = Builders<NotificationDocument>.Update
-                .Set("Channels.$[elem].Status", NotificationChannelStatus.Sending.ToString())
-                .Set(x => x.UpdatedAt, DateTime.UtcNow);
-
-            var arrayFilters = new List<ArrayFilterDefinition>
+            switch (channelType)
             {
-                new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("elem.Type", channelType.ToString()))
-            };
+                case NotificationChannelType.Email:
+                    await NotificationChannelUpdates.SetStatusAsync(
+                        collection, filter, channelType, NotificationChannelStatus.Sending, cancellationToken: cancellationToken);
+                    await emailProcessor.ProcessAsync(notification, message.MessageId, cancellationToken);
+                    break;
 
-            await collection.UpdateOneAsync(
-                filter,
-                update,
-                new UpdateOptions { ArrayFilters = arrayFilters },
-                cancellationToken);
+                case NotificationChannelType.InApp:
+                    // No provider dispatch needed - an in-app notification exists the
+                    // moment it's persisted, so it goes straight to Sent.
+                    await NotificationChannelUpdates.SetStatusAsync(
+                        collection, filter, channelType, NotificationChannelStatus.Sent,
+                        sentAt: DateTime.UtcNow, cancellationToken: cancellationToken);
+                    logger.LogInformation(
+                        "Notification {NotificationId} InApp channel sent (message {MessageId}).",
+                        message.NotificationId,
+                        message.MessageId);
+                    break;
 
-            // Provider dispatch (call IEmailSender/IPushSender) is 5.9/5.10 -
-            // this log line marks where that plugs in, nothing more yet.
-            logger.LogInformation(
-                "Notification {NotificationId} channel {ChannelType} moved to Sending (message {MessageId}).",
-                message.NotificationId,
-                channelType,
-                message.MessageId);
+                case NotificationChannelType.Push:
+                default:
+                    // Push provider dispatch is 5.10, not built yet - stays Sending.
+                    await NotificationChannelUpdates.SetStatusAsync(
+                        collection, filter, channelType, NotificationChannelStatus.Sending, cancellationToken: cancellationToken);
+                    logger.LogInformation(
+                        "Notification {NotificationId} channel {ChannelType} moved to Sending; no processor yet (message {MessageId}).",
+                        message.NotificationId,
+                        channelType,
+                        message.MessageId);
+                    break;
+            }
         }
     }
 }

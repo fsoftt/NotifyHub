@@ -64,7 +64,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Outbox (transactional Create + OutboxProcessor background service, verified end-to-end including the rollback path)
 - [x] Consumer (RabbitMqConsumerWorker: consume + ACK only, no processing logic yet)
 - [x] Notification processing (NotificationConsumer: finds Pending channels, moves them to Sending; no provider dispatch yet)
-- [ ] Email (Resend)
+- [x] Email (Resend) — IEmailSender/ResendEmailSender/EmailNotificationProcessor, verified with a real send and a real rejection
 - [ ] Push (Firebase)
 - [ ] Error classification
 - [ ] Retry
