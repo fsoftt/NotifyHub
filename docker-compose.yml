@@ -5,10 +5,35 @@ services:
     image: mongo:8
     container_name: notifyhub-mongodb
     restart: unless-stopped
+    # Single-node replica set: MongoDB transactions require one, even with
+    # only one member. Needed from here on for the Outbox pattern (atomic
+    # Notification + OutboxMessage insert).
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongodb-init:
+    image: mongo:8
+    container_name: notifyhub-mongodb-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
+    # The member is advertised as localhost:27017, not mongodb:27017: the API
+    # runs on the host (dotnet run), not inside this Docker network, and once
+    # the driver knows it's talking to a replica set it stops using whatever
+    # address it originally connected through and switches to the advertised
+    # member address for everything - which then has to resolve from the host.
+    entrypoint: >
+      mongosh --host mongodb:27017 --quiet --eval
+      "try { rs.status(); } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]}); }"
 
   rabbitmq:
     image: rabbitmq:4-management

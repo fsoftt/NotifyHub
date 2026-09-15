@@ -24,6 +24,8 @@ builder.Services.AddSingleton(rabbitMqConnection);
 var rabbitMqPublisher = await RabbitMqPublisher.CreateAsync(rabbitMqConnection);
 builder.Services.AddSingleton(rabbitMqPublisher);
 
+builder.Services.AddHostedService<OutboxProcessor>();
+
 var app = builder.Build();
 
 await NotificationIndexes.EnsureCreatedAsync(app.Services.GetRequiredService<MongoContext>().Database);

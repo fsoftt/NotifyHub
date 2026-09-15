@@ -1,5 +1,8 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using NotifyHub.Api.Infrastructure.Messaging;
 using NotifyHub.Api.Infrastructure.Mongo;
 using NotifyHub.Api.Infrastructure.Notifications;
 
@@ -62,14 +65,19 @@ internal static partial class Handler
         return errors.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
     }
 
+    // Inserts the Notification and its OutboxMessage in one MongoDB transaction (section 17):
+    // either both are written or neither is - no window where a Notification exists without
+    // a corresponding outbox entry for the OutboxProcessor to publish.
     internal static async Task<NotificationDocument> Handle(Command command, MongoContext mongoContext)
     {
-        var collection = mongoContext.Database.GetCollection<NotificationDocument>(NotificationDocument.CollectionName);
+        var notificationsCollection = mongoContext.Database.GetCollection<NotificationDocument>(NotificationDocument.CollectionName);
+        var outboxCollection = mongoContext.Database.GetCollection<OutboxMessage>(OutboxMessage.CollectionName);
 
         var now = DateTime.UtcNow;
 
         var document = new NotificationDocument
         {
+            Id = ObjectId.GenerateNewId().ToString(),
             UserId = command.UserId,
             Email = command.Email,
             Type = command.Type,
@@ -83,7 +91,29 @@ internal static partial class Handler
             UpdatedAt = now
         };
 
-        await collection.InsertOneAsync(document);
+        var outboxMessage = new OutboxMessage
+        {
+            NotificationId = document.Id,
+            Payload = JsonSerializer.Serialize(new NotificationCreatedMessage(Guid.NewGuid().ToString(), document.Id)),
+            Processed = false,
+            CreatedAt = now
+        };
+
+        using var session = await mongoContext.Client.StartSessionAsync();
+
+        session.StartTransaction();
+
+        try
+        {
+            await notificationsCollection.InsertOneAsync(session, document);
+            await outboxCollection.InsertOneAsync(session, outboxMessage);
+            await session.CommitTransactionAsync();
+        }
+        catch
+        {
+            await session.AbortTransactionAsync();
+            throw;
+        }
 
         return document;
     }
