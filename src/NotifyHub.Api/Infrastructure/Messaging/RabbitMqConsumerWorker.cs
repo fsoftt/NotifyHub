@@ -6,17 +6,21 @@ using RabbitMQ.Client.Events;
 namespace NotifyHub.Api.Infrastructure.Messaging;
 
 // Responsibility (section 9): keep a RabbitMQ consumer running as a
-// BackgroundService. Must not contain Notification business logic - that's
-// NotificationConsumer / notification processing, 5.8, not built yet. For now
-// this only proves the receive-and-ACK mechanism works.
+// BackgroundService. Must not contain Notification business logic itself -
+// that's NotificationConsumer's job (5.8), which this class only delegates to.
 public class RabbitMqConsumerWorker : BackgroundService
 {
     private readonly RabbitMqConnection connection;
+    private readonly NotificationConsumer notificationConsumer;
     private readonly ILogger<RabbitMqConsumerWorker> logger;
 
-    public RabbitMqConsumerWorker(RabbitMqConnection connection, ILogger<RabbitMqConsumerWorker> logger)
+    public RabbitMqConsumerWorker(
+        RabbitMqConnection connection,
+        NotificationConsumer notificationConsumer,
+        ILogger<RabbitMqConsumerWorker> logger)
     {
         this.connection = connection;
+        this.notificationConsumer = notificationConsumer;
         this.logger = logger;
     }
 
@@ -32,12 +36,23 @@ public class RabbitMqConsumerWorker : BackgroundService
             var payload = Encoding.UTF8.GetString(args.Body.ToArray());
             var message = JsonSerializer.Deserialize<NotificationCreatedMessage>(payload);
 
-            logger.LogInformation(
-                "Received NotificationCreatedMessage {MessageId} for notification {NotificationId}",
-                message?.MessageId,
-                message?.NotificationId);
+            if (message is null)
+            {
+                logger.LogError("Received a message on {Queue} that could not be deserialized; leaving it unacked.", NotificationsTopology.QueueName);
+                return;
+            }
 
-            await channel.BasicAckAsync(args.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+            try
+            {
+                await notificationConsumer.ProcessAsync(message, stoppingToken);
+                await channel.BasicAckAsync(args.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                // No retry/DLQ yet (5.11/5.12) - deliberately not acking on failure so the
+                // message stays pending rather than being silently lost.
+                logger.LogError(ex, "Failed to process {MessageId}; leaving it unacked.", message.MessageId);
+            }
         };
 
         await channel.BasicConsumeAsync(
