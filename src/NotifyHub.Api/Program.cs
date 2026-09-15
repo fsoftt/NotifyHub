@@ -24,6 +24,8 @@ builder.Services.AddSingleton(rabbitMqConnection);
 var rabbitMqPublisher = await RabbitMqPublisher.CreateAsync(rabbitMqConnection);
 builder.Services.AddSingleton(rabbitMqPublisher);
 
+builder.Services.AddSingleton<NotificationConsumer>();
+
 builder.Services.AddHostedService<OutboxProcessor>();
 builder.Services.AddHostedService<RabbitMqConsumerWorker>();
 
