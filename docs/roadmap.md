@@ -62,7 +62,7 @@ Tracks real progress against the phases defined in [`docs/project-guide.md`](pro
 - [x] Publisher (RabbitMqPublisher, publisher confirms enabled, verified standalone)
 - [x] Contract (NotificationCreatedMessage)
 - [x] Outbox (transactional Create + OutboxProcessor background service, verified end-to-end including the rollback path)
-- [ ] Consumer
+- [x] Consumer (RabbitMqConsumerWorker: consume + ACK only, no processing logic yet)
 - [ ] Notification processing
 - [ ] Email (Resend)
 - [ ] Push (Firebase)
